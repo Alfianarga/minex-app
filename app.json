@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Minex Mobile",
+    "slug": "minex-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a1a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.minex.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Minex uses your location to show live trip progress while the app is in use.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Minex needs background location to share your live position during an active trip.",
+        "NSLocationAlwaysUsageDescription": "Minex needs background location to share your live position during an active trip."
+      },
+      "backgroundModes": ["location"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a1a"
+      },
+      "package": "com.minex.mobile",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Minex Mobile to access your camera to scan QR codes."
+        }
+      ],
+      [
+        "expo-location"
+      ]
+    ]
+  }
+}
