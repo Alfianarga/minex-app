@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TripCard } from '../components/TripCard';
 import { useTripStore } from '../store/useTripStore';
 import { tripAPI } from '../api/tripAPI';
@@ -61,7 +62,17 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
     setRefreshing(false);
   };
 
-  const filteredTrips = trips.filter((trip) => {
+  // Only show today's trips by default (regardless of role)
+  const isSameYMD = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const today = new Date();
+
+  // Build today's pool for counts and list
+  const todayTrips = trips.filter((t) => {
+    const dep = t.departureAt ? new Date(t.departureAt) : null;
+    return dep && isSameYMD(dep, today);
+  });
+
+  const filteredTrips = todayTrips.filter((trip) => {
     if (filter === 'pending') return trip.status?.toUpperCase() === "PENDING";
     if (filter === 'completed') return trip.status?.toUpperCase() === "COMPLETED";
     return true;
@@ -74,13 +85,13 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
   });
 
   return (
-    <View className="flex-1 bg-minex-dark">
+    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
       {/* Header */}
-      <View className="bg-minex-gray px-6 py-4 pt-12">
+      <View className="px-6 pt-4 pb-4">
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-white text-2xl font-bold">Trip List</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text className="text-minex-orange text-sm font-semibold">Close</Text>
+          <Text className="text-white text-2xl font-poppins-bold">Trip List</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10" activeOpacity={0.8}>
+            <Text className="text-white">✕</Text>
           </TouchableOpacity>
         </View>
 
@@ -88,44 +99,44 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
         <View className="flex-row">
           <TouchableOpacity
             onPress={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filter === 'all' ? 'bg-minex-orange' : 'bg-minex-gray-light'
+            className={`px-4 py-2 rounded-xl mr-2 border ${
+              filter === 'all' ? 'bg-[#0F67FE] border-[#0F67FE]' : 'bg-white/5 border-white/10'
             }`}
           >
             <Text
-              className={`text-sm font-semibold ${
-                filter === 'all' ? 'text-white' : 'text-minex-text-secondary'
+              className={`text-sm font-poppins-medium ${
+                filter === 'all' ? 'text-white' : 'text-white/70'
               }`}
             >
-              All ({trips.length})
+              All ({todayTrips.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filter === 'pending' ? 'bg-minex-yellow' : 'bg-minex-gray-light'
+            className={`px-4 py-2 rounded-xl mr-2 border ${
+              filter === 'pending' ? 'bg-amber-500/20 border-amber-400' : 'bg-white/5 border-white/10'
             }`}
           >
             <Text
-              className={`text-sm font-semibold ${
-                filter === 'pending' ? 'text-white' : 'text-minex-text-secondary'
+              className={`text-sm font-poppins-medium ${
+                filter === 'pending' ? 'text-amber-300' : 'text-white/70'
               }`}
             >
-              Pending ({trips.filter((t) => t.status?.toUpperCase() === 'PENDING').length})
+              Pending ({todayTrips.filter((t) => t.status?.toUpperCase() === 'PENDING').length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setFilter('completed')}
-            className={`px-4 py-2 rounded-lg ${
-              filter === 'completed' ? 'bg-minex-green' : 'bg-minex-gray-light'
+            className={`px-4 py-2 rounded-xl border ${
+              filter === 'completed' ? 'bg-emerald-500/20 border-emerald-400' : 'bg-white/5 border-white/10'
             }`}
           >
             <Text
-              className={`text-sm font-semibold ${
-                filter === 'completed' ? 'text-white' : 'text-minex-text-secondary'
+              className={`text-sm font-poppins-medium ${
+                filter === 'completed' ? 'text-emerald-300' : 'text-white/70'
               }`}
             >
-              Completed ({trips.filter((t) => t.status?.toUpperCase() === 'COMPLETED').length})
+              Completed ({todayTrips.filter((t) => t.status?.toUpperCase() === 'COMPLETED').length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -143,10 +154,10 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
         contentContainerClassName="pb-6"
         ListEmptyComponent={
           <View className="items-center justify-center py-12 px-6">
-            <Text className="text-minex-text-secondary text-lg text-center">
+            <Text className="text-white/80 text-lg text-center font-poppins-medium">
               No trips found
             </Text>
-            <Text className="text-minex-text-secondary text-sm text-center mt-2">
+            <Text className="text-white/60 text-sm text-center mt-2">
               {filter === 'all'
                 ? 'Start scanning QR codes to create trips'
                 : `No ${filter} trips available`}
@@ -157,12 +168,12 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#ff6b35"
-            colors={['#ff6b35']}
+            tintColor="#0F67FE"
+            colors={["#0F67FE"]}
           />
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

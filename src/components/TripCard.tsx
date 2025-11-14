@@ -10,23 +10,27 @@ interface TripCardProps {
 }
 
 export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
-  const isCompleted = trip.status === TRIP_STATUS.COMPLETED;
-  const statusColor = trip.status?.toUpperCase() === 'COMPLETED' ? 'bg-minex-green' : 'bg-minex-yellow';
-  const statusTextColor = trip.status?.toUpperCase() === 'COMPLETED' ? 'text-white' : 'text-white';
+  const status = (trip.status ?? '').trim().toUpperCase();
+  const isCompleted = status === 'COMPLETED';
+  const isPending = status === 'PENDING';
+  const badgeContainer = isCompleted
+    ? 'bg-emerald-400/15 border border-emerald-400'
+    : 'bg-amber-400/15 border border-amber-400';
+  const badgeText = isCompleted ? 'text-emerald-300' : 'text-amber-300';
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-minex-gray-light rounded-lg p-4 mb-3 border border-minex-gray"
+      className="bg-white/5 rounded-xl p-4 mb-3 border border-white/10"
       activeOpacity={0.7}
     >
       <View className="flex-row justify-between items-start mb-2">
         <View className="flex-1">
-          <Text className="text-white text-lg font-bold mb-1">{trip.tripToken}</Text>
-          <Text className="text-minex-text-secondary text-sm">Destination: {trip.destination}</Text>
+          <Text className="text-white text-lg font-poppins-bold mb-1">{trip.tripToken}</Text>
+          <Text className="text-white/70 text-sm">Destination: {trip.destination}</Text>
         </View>
-        <View className={`${statusColor} px-3 py-1 rounded-full`}>
-          <Text className={`${statusTextColor} text-xs font-semibold`}>
+        <View className={`${badgeContainer} px-3 py-1 rounded-full`}>
+          <Text className={`${badgeText} text-xs font-poppins-medium`}>
             {trip.status}
           </Text>
         </View>
@@ -34,8 +38,8 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
 
       <View className="mt-3">
         <View className="flex-row justify-between mb-2">
-          <Text className="text-minex-text-secondary text-sm">Departure:</Text>
-          <Text className="text-white text-sm font-semibold">
+          <Text className="text-white/70 text-sm">Departure:</Text>
+          <Text className="text-white text-sm font-poppins-medium">
             {formatDate(trip.departureAt)}
           </Text>
         </View>
@@ -43,21 +47,21 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
         {isCompleted && trip.arrivalAt && (
           <>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-minex-text-secondary text-sm">Arrival:</Text>
-              <Text className="text-white text-sm font-semibold">
+              <Text className="text-white/70 text-sm">Arrival:</Text>
+              <Text className="text-white text-sm font-poppins-medium">
                 {formatDate(trip.arrivalAt)}
               </Text>
             </View>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-minex-text-secondary text-sm">Duration:</Text>
-              <Text className="text-white text-sm font-semibold">
+              <Text className="text-white/70 text-sm">Duration:</Text>
+              <Text className="text-white text-sm font-poppins-medium">
                 {getDuration(trip.departureAt, trip.arrivalAt)}
               </Text>
             </View>
             {trip.weightKg && (
               <View className="flex-row justify-between">
-                <Text className="text-minex-text-secondary text-sm">Weight:</Text>
-                <Text className="text-minex-orange text-sm font-bold">
+                <Text className="text-white/70 text-sm">Weight:</Text>
+                <Text className="text-[#0F67FE] text-sm font-poppins-bold">
                   {(trip.weightKg / 1000).toFixed(2)} tons
                 </Text>
               </View>

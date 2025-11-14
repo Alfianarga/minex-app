@@ -7,6 +7,7 @@ import { tripAPI, StartTripRequest } from '../api/tripAPI';
 import { USER_ROLES, TRIP_STATUS } from '../utils/constants';
 import { offlineStorage } from '../utils/storage';
 import NetInfo from '@react-native-community/netinfo';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface QRScannerScreenProps {
   navigation: any;
@@ -16,6 +17,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
   const { user } = useAuthStore();
   const { addTrip, getTripByToken, updateTrip } = useTripStore();
   const [processing, setProcessing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const isOperator = user?.role === USER_ROLES.OPERATOR;
   const isChecker = user?.role === USER_ROLES.CHECKER;
@@ -201,30 +203,32 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
   if (processing) {
     return (
       <View className="flex-1 items-center justify-center bg-minex-dark">
-        <ActivityIndicator size="large" color="#ff6b35" />
-        <Text className="text-white text-lg mt-4">Processing...</Text>
+        <ActivityIndicator size="large" color="#0F67FE" />
+        <Text className="text-white text-lg mt-4 font-poppins-medium">Processing...</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1">
-      
+    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
       <QRScannerView onScan={handleScan} />
-      <View className="absolute top-12 left-0 right-0 px-6">
+      <View
+        className="absolute left-0 right-0 px-6"
+        style={{ top: insets.top + 12 }}
+      >
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-white text-2xl font-bold">Scan QR Code</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text className="text-minex-orange text-sm font-semibold">Close</Text>
+          <Text className="text-white text-2xl font-poppins-bold">Scan QR Code</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10" activeOpacity={0.8}>
+            <Text className="text-white">✕</Text>
           </TouchableOpacity>
         </View>
-        <View className="bg-black/70 rounded-lg p-4">
-          <Text className="text-white text-center font-semibold text-lg">
+        <View className="rounded-xl p-4 border border-[#0F67FE]/30 bg-[#0F67FE]/10">
+          <Text className="text-white text-center text-base font-poppins-medium">
             {user?.role?.toUpperCase() === 'OPERATOR' ? 'Scan QR to Start Trip' : 'Scan QR to Complete Trip'}
           </Text>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

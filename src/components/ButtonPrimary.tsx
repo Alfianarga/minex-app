@@ -19,13 +19,13 @@ export const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
   size = 'large',
 }) => {
   const getBgColor = () => {
-    if (variant === 'secondary') return 'bg-minex-gray-light';
+    if (variant === 'secondary') return 'bg-white/5 border border-white/10';
     if (variant === 'danger') return 'bg-red-600';
-    return 'bg-minex-orange';
+    return 'bg-[#0F67FE]';
   };
 
   const getTextColor = () => {
-    if (variant === 'secondary') return 'text-minex-orange';
+    if (variant === 'secondary') return 'text-white';
     return 'text-white';
   };
 
@@ -48,18 +48,25 @@ export const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
       className={`
         ${getBgColor()}
         ${getSizeClasses()}
-        rounded-lg
+        rounded-xl
         items-center
         justify-center
         ${disabled || loading ? 'opacity-50' : 'opacity-100'}
         active:opacity-80
       `}
-      style={{ minHeight: size === 'large' ? 56 : size === 'medium' ? 48 : 40 }}
+      style={{
+        minHeight: size === 'large' ? 56 : size === 'medium' ? 48 : 40,
+        shadowColor: variant === 'primary' ? '#0F67FE' : 'transparent',
+        shadowOpacity: variant === 'primary' ? 0.35 : 0,
+        shadowRadius: variant === 'primary' ? 12 : 0,
+        shadowOffset: { width: 0, height: variant === 'primary' ? 6 : 0 },
+        elevation: variant === 'primary' ? 4 : 0,
+      }}
     >
       {loading ? (
         <ActivityIndicator color="white" size="small" />
       ) : (
-        <Text className={`${getTextColor()} ${getTextSize()} font-bold`}>
+        <Text className={`${getTextColor()} ${getTextSize()} font-poppins-bold`}>
           {title}
         </Text>
       )}

@@ -38,7 +38,11 @@ export const tripAPI = {
   },
 
   async getTrips(): Promise<Trip[]> {
-    const response = await client.get<Trip[]>('/trip');
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const response = await client.get<Trip[]>('/trip', { params: { date: `${y}-${m}-${d}` } });
     return response.data;
   },
 

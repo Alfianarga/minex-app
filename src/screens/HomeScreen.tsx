@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { ButtonPrimary } from '../components/ButtonPrimary';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/useAuthStore';
 import { useTripStore } from '../store/useTripStore';
 import { USER_ROLES } from '../utils/constants';
@@ -22,81 +22,72 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <View className="flex-1 bg-minex-dark">
-      {/* Header */}
-      <View className="bg-minex-gray px-6 py-6 pt-12">
-        <View className="flex-row justify-between items-center mb-4">
-          <View>
-            <Text className="text-white text-2xl font-bold">MINEX Mobile</Text>
-            <Text className="text-minex-text-secondary text-sm mt-1">
-              {user?.email} • {user?.role?.toUpperCase()}
-            </Text>
+    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top', 'left', 'right']}>
+      {/* Top section */}
+      <View className="px-6 pt-4 pb-4">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-full bg-[#0F67FE] items-center justify-center mr-3">
+              <Text className="text-white font-bold">
+                {(user?.email || 'U').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View>
+              <Text className="text-white/80 text-xs font-poppins-medium">Welcome back</Text>
+              <Text className="text-white text-lg font-poppins-bold">{user?.email}</Text>
+            </View>
           </View>
           <TouchableOpacity
             onPress={handleLogout}
-            className="bg-minex-gray-light px-4 py-2 rounded-lg"
+            className="w-10 h-10 rounded-full items-center justify-center bg-white/5 border border-white/10"
+            activeOpacity={0.8}
           >
-            <Text className="text-minex-orange text-sm font-semibold">Logout</Text>
+            <Text className="text-white">⎋</Text>
           </TouchableOpacity>
         </View>
 
         {pendingTrips.length > 0 && (
-          <View className="bg-minex-yellow/20 border border-minex-yellow rounded-lg p-3 mt-2">
-            <Text className="text-minex-yellow text-sm font-semibold">
+          <View className="mt-4 rounded-xl border border-[#0F67FE]/30 bg-[#0F67FE]/10 p-3">
+            <Text className="text-[#0F67FE] text-sm font-poppins-medium">
               {pendingTrips.length} Pending Trip{pendingTrips.length > 1 ? 's' : ''}
             </Text>
           </View>
         )}
       </View>
 
-      {/* Menu */}
-      <ScrollView className="flex-1 px-6 py-6">
-        {/* Scan QR Button */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('QRScanner')}
-          className="bg-minex-gray-light rounded-lg p-6 border border-minex-gray mb-4"
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center">
-            <View className="bg-minex-orange/20 rounded-full p-4 mr-4">
-              <Text className="text-minex-orange text-2xl">📷</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="text-white text-xl font-bold mb-1">
-                {user?.role?.toUpperCase() === 'OPERATOR' ? 'Scan QR - Start Trip' : 'Scan QR - Complete Trip'}
-              </Text>
-              <Text className="text-minex-text-secondary text-sm">
-                {user?.role?.toUpperCase() === 'OPERATOR'
-                  ? 'Scan QR code at source to create new trip'
-                  : 'Scan QR code at destination to complete trip'}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+      {/* Main actions */}
+      <ScrollView className="flex-1" contentContainerClassName="flex-grow items-center justify-center px-6 pb-6">
+        <View className="w-full items-center">
+          {/* Big Scan button */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('QRScanner')}
+            activeOpacity={0.85}
+            className="w-48 h-48 rounded-3xl bg-[#0F67FE] items-center justify-center mb-6"
+            style={{ shadowColor: '#0F67FE', shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}
+          >
+            <Text className="text-white text-6xl mb-2">▦</Text>
+            <Text className="text-white text-xl font-poppins-bold">
+              {isOperator ? 'Scan QR' : 'Scan QR'}
+            </Text>
+          </TouchableOpacity>
 
-        {/* View Trips Button */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('TripList')}
-          className="bg-minex-gray-light rounded-lg p-6 border border-minex-gray mb-4"
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center">
-            <View className="bg-minex-green/20 rounded-full p-4 mr-4">
-              <Text className="text-minex-green text-2xl">📋</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="text-white text-xl font-bold mb-1">View Trips</Text>
-              <Text className="text-minex-text-secondary text-sm">
-                View all trips (Pending and Completed)
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+          {/* Secondary action */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TripList')}
+            activeOpacity={0.85}
+            className="w-64 h-16 rounded-2xl bg-white/5 border border-white/10 items-center justify-center"
+            style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 }}
+          >
+            <Text className="text-white text-lg font-poppins-bold">View Trips</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Role-specific info */}
-        <View className="bg-minex-gray-light rounded-lg p-4 mt-4 border border-minex-gray">
-          <Text className="text-white font-semibold mb-2">Your Role: {user?.role?.toUpperCase()}</Text>
-          <Text className="text-minex-text-secondary text-sm">
+        <View className="mt-8 rounded-xl bg-white/5 border border-white/10 p-4 w-full">
+          <Text className="text-white font-poppins-medium mb-2">
+            Your Role: {user?.role?.toUpperCase()}
+          </Text>
+          <Text className="text-white/70 text-sm">
             {user?.role?.toUpperCase() === 'OPERATOR'
               ? 'As an Operator, you scan QR codes at the source (Tambang) to start new trips.'
               : user?.role?.toUpperCase() === 'CHECKER'
@@ -105,7 +96,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

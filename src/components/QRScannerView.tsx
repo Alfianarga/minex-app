@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { ButtonPrimary } from './ButtonPrimary';
 
 interface QRScannerViewProps {
   onScan: (data: string) => void;
@@ -32,7 +33,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScan, onError })
   if (!permission) {
     return (
       <View className="flex-1 items-center justify-center bg-minex-dark">
-        <Text className="text-white text-lg">Requesting camera permission...</Text>
+        <Text className="text-white text-lg font-poppins-medium">Requesting camera permission...</Text>
       </View>
     );
   }
@@ -40,15 +41,12 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScan, onError })
   if (!permission.granted) {
     return (
       <View className="flex-1 items-center justify-center bg-minex-dark px-6">
-        <Text className="text-white text-lg text-center mb-4">
+        <Text className="text-white text-lg text-center mb-4 font-poppins-medium">
           Camera permission is required to scan QR codes
         </Text>
-        <TouchableOpacity
-          onPress={requestPermission}
-          className="bg-minex-orange px-6 py-3 rounded-lg"
-        >
-          <Text className="text-white font-bold">Grant Permission</Text>
-        </TouchableOpacity>
+        <View className="w-full max-w-xs">
+          <ButtonPrimary title="Grant Permission" onPress={requestPermission} />
+        </View>
       </View>
     );
   }
@@ -67,7 +65,7 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScan, onError })
       <View className="flex-1 items-center justify-center">
         {/* Scan area frame */}
         <View
-          className="border-4 border-minex-orange rounded-lg"
+          className="border-4 border-[#0F67FE] rounded-2xl"
           style={{
             width: SCAN_AREA_SIZE,
             height: SCAN_AREA_SIZE,
@@ -75,10 +73,10 @@ export const QRScannerView: React.FC<QRScannerViewProps> = ({ onScan, onError })
         />
         {/* Instructions */}
         <View className="absolute bottom-32 px-6">
-          <Text className="text-white text-center text-lg font-semibold mb-2">
+          <Text className="text-white text-center text-lg font-poppins-bold mb-2">
             Position QR code within frame
           </Text>
-          <Text className="text-minex-text-secondary text-center text-sm">
+          <Text className="text-white/70 text-center text-sm font-poppins-medium">
             {scanned ? 'Scanning...' : 'Ready to scan'}
           </Text>
         </View>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ButtonPrimary } from '../components/ButtonPrimary';
 import { useTripStore } from '../store/useTripStore';
 import { tripAPI, CompleteTripRequest } from '../api/tripAPI';
@@ -26,7 +27,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
   if (!trip) {
     return (
       <View className="flex-1 items-center justify-center bg-minex-dark px-6">
-        <Text className="text-white text-lg text-center mb-4">
+        <Text className="text-white text-lg text-center mb-4 font-poppins-medium">
           Trip not found
         </Text>
         <ButtonPrimary
@@ -106,47 +107,54 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-minex-dark"
-    >
-      <ScrollView
-        contentContainerClassName="flex-grow px-6 py-6"
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
       >
+        <ScrollView
+          contentContainerClassName="flex-grow px-6 py-6"
+          keyboardShouldPersistTaps="handled"
+        >
+        {/* Header */}
         <View className="mb-6">
-          <Text className="text-white text-2xl font-bold mb-2">Complete Trip</Text>
-          <Text className="text-minex-text-secondary text-sm">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-white text-2xl font-poppins-bold">Complete Trip</Text>
+            <View className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10">
+              <Text className="text-white" onPress={() => navigation.goBack()}>✕</Text>
+            </View>
+          </View>
+          <Text className="text-white/70 text-sm font-poppins-medium">
             Enter the weight (tonnage) for this trip
           </Text>
         </View>
 
-        <View className="bg-minex-gray-light rounded-lg p-4 mb-6 border border-minex-gray">
-          <Text className="text-minex-text-secondary text-sm mb-1">Trip Token</Text>
-          <Text className="text-white text-lg font-bold">{trip.tripToken}</Text>
+        <View className="rounded-xl p-4 mb-6 border border-[#0F67FE]/30 bg-[#0F67FE]/10">
+          <Text className="text-white/80 text-sm mb-1 font-poppins-medium">Trip Token</Text>
+          <Text className="text-white text-lg font-poppins-bold">{trip.tripToken}</Text>
         </View>
 
         <View className="mb-6">
-          <Text className="text-white text-sm font-semibold mb-2">Weight (Kilograms)</Text>
+          <Text className="text-white text-sm font-poppins-medium mb-2">Weight (Kilograms)</Text>
           <TextInput
             value={weight}
             onChangeText={setWeight}
             placeholder="Enter weight in kg (e.g., 13200)"
             placeholderTextColor="#666"
             keyboardType="numeric"
-            className="bg-minex-gray-light text-white px-4 py-4 rounded-lg text-lg border border-minex-gray"
+            className="text-white px-4 py-4 rounded-xl text-lg bg-white/5 border border-white/10"
             style={{ minHeight: 56 }}
             autoFocus
           />
-          <Text className="text-minex-text-secondary text-xs mt-2">
+          <Text className="text-white/60 text-xs mt-2">
             Example: 13200 kg = 13.2 tons
           </Text>
         </View>
 
         <View className="mb-4">
           {weight && !isNaN(parseFloat(weight)) && parseFloat(weight) > 0 && (
-            <View className="bg-minex-orange/20 rounded-lg p-4 mb-4">
-              <Text className="text-minex-orange text-center text-lg font-bold">
+            <View className="rounded-xl p-4 mb-4 border border-[#0F67FE]/30 bg-[#0F67FE]/10">
+              <Text className="text-[#0F67FE] text-center text-lg font-poppins-bold">
                 {(parseFloat(weight) / 1000).toFixed(2)} tons
               </Text>
             </View>
@@ -160,14 +168,14 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
           disabled={loading || !weight}
         />
 
-        <ButtonPrimary
-          title="Cancel"
-          onPress={() => navigation.goBack()}
-          variant="secondary"
-          size="medium"
-        />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <ButtonPrimary
+            title="Cancel"
+            onPress={() => navigation.goBack()}
+            variant="secondary"
+            size="medium"
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-

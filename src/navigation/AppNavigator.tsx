@@ -58,11 +58,7 @@ export const AppNavigator: React.FC = () => {
               component={WeightInputScreen}
               options={{
                 presentation: 'card',
-                headerShown: true,
-                headerStyle: { backgroundColor: '#1a1a1a' },
-                headerTintColor: '#ff6b35',
-                headerTitle: 'Enter Weight',
-                headerTitleStyle: { color: '#ffffff', fontWeight: 'bold' },
+                headerShown: false,
               }}
             />
             <Stack.Screen
