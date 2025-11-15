@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { Trip } from '../api/tripAPI';
+import { Trip, CompleteTripRequest } from '../api/tripAPI';
 import { UserRole } from '../utils/constants';
+import { offlineStorage } from '../utils/storage';
+import { tripAPI } from '../api/tripAPI';
 
 interface User {
   id: string;
@@ -28,6 +30,8 @@ interface TripState {
   offlineTrips: Trip[];
   addOfflineTrip: (trip: Trip) => void;
   clearOfflineTrips: () => void;
+  isSyncingOffline: boolean;
+  syncingCount: number;
   syncOfflineTrips: () => Promise<void>;
 }
 
@@ -52,13 +56,14 @@ export const useTripStore = create<TripState>((set, get) => ({
   },
   updateTrip: (tripToken, updates) => {
     const trips = get().trips.map((t) =>
-      t.tripToken === tripToken ? { ...t, ...updates } : t
+      t.tripToken === tripToken.trim() ? { ...t, ...updates } : t
     );
     const pendingTrips = trips.filter((t) => t.status === 'Pending');
     set({ trips, pendingTrips });
   },
   getTripByToken: (tripToken) => {
-    return get().trips.find((t) => t.tripToken === tripToken);
+    const token = tripToken.trim();
+    return get().trips.find((t) => t.tripToken === token);
   },
 
   // Offline state
@@ -67,12 +72,45 @@ export const useTripStore = create<TripState>((set, get) => ({
     set({ offlineTrips: [...get().offlineTrips, trip] });
   },
   clearOfflineTrips: () => set({ offlineTrips: [] }),
+  isSyncingOffline: false,
+  syncingCount: 0,
   syncOfflineTrips: async () => {
-    // This will be implemented to sync offline trips when online
-    const offlineTrips = get().offlineTrips;
-    if (offlineTrips.length > 0) {
-      // TODO: Implement sync logic
-      console.log('Syncing offline trips:', offlineTrips.length);
+    if (get().isSyncingOffline) return;
+    set({ isSyncingOffline: true });
+    try {
+      const queued = await offlineStorage.getOfflineTrips();
+      const toSync = queued.filter((t) => (t as any).completionPending);
+      set({ syncingCount: toSync.length });
+
+      const remaining: any[] = [];
+      for (const t of queued) {
+        if (!(t as any).completionPending) {
+          remaining.push(t);
+          continue;
+        }
+        const payload: CompleteTripRequest = {
+          tripToken: t.tripToken,
+          weightKg: t.weightKg || 0,
+        };
+        try {
+          const completed = await tripAPI.completeTrip(payload);
+          const updated = { ...completed } as any;
+          updated.completionPending = false;
+          updated.offline = false;
+          get().updateTrip(t.tripToken, updated);
+        } catch (err: any) {
+          const status = err?.response?.status as number | undefined;
+          if (status === 409) {
+            get().updateTrip(t.tripToken, { completionPending: false } as any);
+          } else {
+            remaining.push(t);
+          }
+        }
+      }
+      await offlineStorage.setOfflineTrips(remaining);
+      set({ syncingCount: 0 });
+    } finally {
+      set({ isSyncingOffline: false });
     }
   },
 }));

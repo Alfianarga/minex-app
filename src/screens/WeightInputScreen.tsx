@@ -18,11 +18,11 @@ interface WeightInputScreenProps {
 
 export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation, route }) => {
   const { tripToken } = route.params;
-  const { getTripByToken, updateTrip } = useTripStore();
+  const token = tripToken.trim();
+  const updateTrip = useTripStore((s) => s.updateTrip);
+  const trip = useTripStore((s) => s.trips.find((t) => t.tripToken === token));
   const [weight, setWeight] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const trip = getTripByToken(tripToken);
 
   if (!trip) {
     return (
@@ -47,6 +47,11 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       return;
     }
 
+    // Prevent duplicate submissions if already in progress
+    if ((trip as any)?.completionPending || loading) {
+      return;
+    }
+
     setLoading(true);
 
     const completeData: CompleteTripRequest = {
@@ -65,9 +70,10 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         weightKg: completeData.weightKg,
         status: 'Completed' as const,
         offline: true,
+        completionPending: true,
       };
       await offlineStorage.saveTrip(updatedTrip);
-      updateTrip(tripToken, updatedTrip);
+      updateTrip(tripToken, updatedTrip as any);
       setLoading(false);
       Alert.alert(
         'Trip Completed (Offline)',
@@ -78,8 +84,10 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
     }
 
     try {
+      // Mark as pending completion to block rescans
+      updateTrip(tripToken, { completionPending: true } as any);
       const completedTrip = await tripAPI.completeTrip(completeData);
-      updateTrip(tripToken, completedTrip);
+      updateTrip(tripToken, { ...completedTrip, completionPending: false } as any);
       setLoading(false);
       Alert.alert(
         'Trip Completed',
@@ -87,16 +95,31 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
       );
     } catch (error: any) {
-      // Fallback to offline storage
+      // Handle logical errors from server: do NOT create offline completion
+      const status = error?.response?.status as number | undefined;
+      if (status === 404 || status === 409) {
+        // Already completed or not eligible; clear pending flag
+        updateTrip(tripToken, { completionPending: false } as any);
+        setLoading(false);
+        Alert.alert(
+          'Already Completed',
+          'This trip has already been completed on the server.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
+        );
+        return;
+      }
+
+      // Fallback to offline storage only for network/timeouts/5xx
       const updatedTrip = {
         ...trip,
         arrivalAt: new Date().toISOString(),
         weightKg: completeData.weightKg,
         status: 'Completed' as const,
         offline: true,
+        completionPending: true,
       };
       await offlineStorage.saveTrip(updatedTrip);
-      updateTrip(tripToken, updatedTrip);
+      updateTrip(tripToken, updatedTrip as any);
       setLoading(false);
       Alert.alert(
         'Trip Completed (Offline)',

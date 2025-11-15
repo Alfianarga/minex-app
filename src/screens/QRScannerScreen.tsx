@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { QRScannerView } from '../components/QRScannerView';
 import { useAuthStore } from '../store/useAuthStore';
@@ -41,7 +41,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     }
   };
   
-  let lastScanTime = 0;
+  const lastScanTimeRef = useRef(0);
 
   const handleScan = async (data: string) => {
     if (processing) return;
@@ -49,8 +49,8 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     const now = Date.now();
 
     // Ignore scans within 1 second
-    if (now - lastScanTime < 1000) return;
-    lastScanTime = now;
+    if (now - lastScanTimeRef.current < 1000) return;
+    lastScanTimeRef.current = now;
 
     setProcessing(true);
 
@@ -81,7 +81,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         await handleStartTrip(qrData);
       } else if (user?.role?.toUpperCase() === 'CHECKER') {
         // Checker: Complete existing trip
-        handleCompleteTrip(tripToken);
+        await handleCompleteTrip(tripToken);
       } else {
         Alert.alert('Unauthorized', 'Your role does not have permission to scan QR codes');
       }
@@ -178,25 +178,39 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     }
   };
 
-  const handleCompleteTrip = (tripToken: string) => {
-    const existingTrip = getTripByToken(tripToken);
-  
+  const handleCompleteTrip = async (tripToken: string) => {
+    const token = tripToken.trim();
+    // Always check server for the latest state first
+    let existingTrip = null as any;
+    try {
+      const serverTrip = await tripAPI.getTripByToken(token);
+      if (serverTrip) {
+        addTrip(serverTrip);
+        existingTrip = serverTrip as any;
+      }
+    } catch (e: any) {
+      // If server says 404, fall back to local (covers legit offline-started trips)
+      const status = e?.response?.status as number | undefined;
+      if (status !== 404) {
+        // For network or other errors, we still can fall back to local
+      }
+    }
+
     if (!existingTrip) {
-      Alert.alert('Trip Not Found', 'This trip does not exist.', [{ text: 'OK' }]);
+      existingTrip = getTripByToken(token) as any;
+    }
+
+    if (existingTrip && (existingTrip.status?.toUpperCase() === 'COMPLETED' || (existingTrip as any).completionPending)) {
+      Alert.alert('Already Completed', 'This trip has already been completed or is being completed. Please wait.', [{ text: 'OK' }]);
       return;
     }
-  
-    if (existingTrip.status?.toUpperCase() === 'COMPLETED') {
-      Alert.alert('Already Completed', 'This trip has already been completed', [{ text: 'OK' }]);
-      return;
-    }
-  
+
     // 1️⃣ Close the modal first
     navigation.goBack();
-  
+
     // 2️⃣ Navigate after a slight delay
     setTimeout(() => {
-      navigation.navigate('WeightInput', { tripToken });
+      navigation.navigate('WeightInput', { tripToken: token });
     }, 100);
   };
 

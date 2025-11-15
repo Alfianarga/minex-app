@@ -57,6 +57,14 @@ export const offlineStorage = {
     }
   },
 
+  async setOfflineTrips(trips: any[]): Promise<void> {
+    try {
+      await storage.setItem(STORAGE_KEYS.OFFLINE_TRIPS, trips);
+    } catch (error) {
+      console.error('Error setting offline trips:', error);
+    }
+  },
+
   async clearOfflineTrips(): Promise<void> {
     try {
       await storage.removeItem(STORAGE_KEYS.OFFLINE_TRIPS);

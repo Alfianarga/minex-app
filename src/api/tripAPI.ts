@@ -1,5 +1,7 @@
 import client from './client';
 
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 export interface StartTripRequest {
   tripToken: string;
   vehicleId: number;
@@ -47,8 +49,24 @@ export const tripAPI = {
   },
 
   async getTripByToken(tripToken: string): Promise<Trip> {
-    const response = await client.get<Trip>(`/trip/${tripToken}`);
-    return response.data;
+    const token = encodeURIComponent(tripToken.trim());
+    let lastError: any;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await client.get<Trip>(`/trip/${token}`);
+        return response.data;
+      } catch (err: any) {
+        lastError = err;
+        // Retry on 404 (eventual consistency) or transient network timeout
+        const status = err?.response?.status;
+        if (status === 404 || err?.code === 'ECONNABORTED') {
+          await sleep(250 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastError;
   },
 };
 
