@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ButtonPrimary } from '../components/ButtonPrimary';
 import { useAuthStore } from '../store/useAuthStore';
@@ -98,8 +98,12 @@ export const LoginScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
         <View className="items-center mb-12 mt-6">
-          <View className="w-16 h-16 rounded-2xl bg-[#0F67FE] items-center justify-center mb-4" style={{ shadowColor: '#0F67FE', shadowOpacity: 0.45, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 8 }}>
-            <Text className="text-white text-2xl font-poppins-bold">MX</Text>
+          <View className="w-16 h-16 rounded-2xl items-center justify-center mb-4" style={{ shadowColor: '#0F67FE', shadowOpacity: 0.45, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 8 }}>
+            <Image
+              source={require('../../assets/icon.png')}
+              className="w-16 h-16 rounded-2xl"
+              resizeMode="cover"
+            />
           </View>
           <Text className="text-white text-3xl font-poppins-bold mb-1">MINEX Mobile</Text>
           <Text className="text-white/80 text-base font-poppins-medium">Sign in to continue</Text>

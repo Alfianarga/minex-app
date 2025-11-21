@@ -27,7 +27,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a1a"
+        "backgroundColor": "#1a1a1a",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png"
       },
       "package": "com.minex.mobile",
       "permissions": [
