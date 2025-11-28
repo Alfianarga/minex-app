@@ -8,6 +8,7 @@ import { offlineStorage } from '../utils/storage';
 import { TRIP_STATUS } from '../utils/constants';
 import NetInfo from '@react-native-community/netinfo';
 import { useAccessibilityStore } from '../store/useAccessibilityStore';
+import { useI18n } from '../i18n';
 
 interface TripListScreenProps {
   navigation: any;
@@ -18,6 +19,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const { highContrast, largeText } = useAccessibilityStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     loadTrips();
@@ -91,7 +93,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
       {/* Header */}
       <View className="px-6 pt-4 pb-4">
         <View className="flex-row justify-between items-center mb-4">
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>Trip List</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>{t('trips', 'headerTitle')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10" activeOpacity={0.8}>
             <Text className="text-white">✕</Text>
           </TouchableOpacity>
@@ -112,7 +114,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
                 filter === 'all' ? (highContrast ? 'text-black' : 'text-white') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
-              All ({todayTrips.length})
+              {t('trips', 'filterAll')} ({todayTrips.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -128,7 +130,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
                 filter === 'pending' ? (highContrast ? 'text-black' : 'text-amber-300') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
-              Pending ({todayTrips.filter((t) => t.status?.toUpperCase() === 'PENDING').length})
+              {t('trips', 'filterPending')} ({todayTrips.filter((t) => t.status?.toUpperCase() === 'PENDING').length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -144,7 +146,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
                 filter === 'completed' ? (highContrast ? 'text-black' : 'text-emerald-300') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
-              Completed ({todayTrips.filter((t) => t.status?.toUpperCase() === 'COMPLETED').length})
+              {t('trips', 'filterCompleted')} ({todayTrips.filter((t) => t.status?.toUpperCase() === 'COMPLETED').length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -163,12 +165,12 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
         ListEmptyComponent={
           <View className="items-center justify-center py-12 px-6">
             <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-xl' : 'text-lg'} text-center font-poppins-medium`}>
-              No trips found
+              {t('trips', 'emptyTitle')}
             </Text>
             <Text className={`${highContrast ? 'text-white' : 'text-white/60'} ${largeText ? 'text-base' : 'text-sm'} text-center mt-2`}>
               {filter === 'all'
-                ? 'Start scanning QR codes to create trips'
-                : `No ${filter} trips available`}
+                ? t('trips', 'emptyAllDescription')
+                : t('trips', 'emptyFilteredDescription', filter)}
             </Text>
           </View>
         }

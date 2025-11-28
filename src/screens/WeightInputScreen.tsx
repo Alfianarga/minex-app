@@ -8,6 +8,7 @@ import { offlineStorage } from '../utils/storage';
 import NetInfo from '@react-native-community/netinfo';
 import { useAccessibilityStore } from '../store/useAccessibilityStore';
 import { triggerSuccessHaptic, triggerWarningHaptic } from '../utils/haptics';
+import { useI18n } from '../i18n';
 
 interface WeightInputScreenProps {
   navigation: any;
@@ -26,15 +27,16 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
   const [weight, setWeight] = useState('');
   const [loading, setLoading] = useState(false);
   const { highContrast, largeText } = useAccessibilityStore();
+  const { t } = useI18n();
 
   if (!trip) {
     return (
       <View className={`flex-1 items-center justify-center px-6 ${highContrast ? 'bg-black' : 'bg-minex-dark'}`}>
         <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} text-center mb-4 font-poppins-medium`}>
-          Trip not found
+          {t('weight', 'notFoundTitle')}
         </Text>
         <ButtonPrimary
-          title="Go Back"
+          title={t('weight', 'notFoundBack')}
           onPress={() => navigation.goBack()}
           variant="secondary"
         />
@@ -47,7 +49,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
 
     if (!weight || isNaN(weightKg) || weightKg <= 0) {
       triggerWarningHaptic();
-      Alert.alert('Invalid Weight', 'Please enter a valid weight in kilograms');
+      Alert.alert(t('weight', 'invalidWeightTitle'), t('weight', 'invalidWeightMessage'));
       return;
     }
 
@@ -81,8 +83,8 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       setLoading(false);
       triggerSuccessHaptic();
       Alert.alert(
-        'Trip Completed (Offline)',
-        'Trip will be synced when connection is restored',
+        t('weight', 'offlineTitle'),
+        t('weight', 'offlineMessage'),
         [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
       );
       return;
@@ -96,8 +98,8 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       setLoading(false);
       triggerSuccessHaptic();
       Alert.alert(
-        'Trip Completed',
-        `Trip ${tripToken} completed successfully with ${(weightKg / 1000).toFixed(2)} tons`,
+        t('weight', 'completedTitle'),
+        t('weight', 'completedMessage', tripToken, (weightKg / 1000).toFixed(2)),
         [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
       );
     } catch (error: any) {
@@ -109,8 +111,8 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         setLoading(false);
         triggerWarningHaptic();
         Alert.alert(
-          'Already Completed',
-          'This trip has already been completed on the server.',
+          t('weight', 'alreadyCompletedTitle'),
+          t('weight', 'alreadyCompletedMessage'),
           [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
         );
         return;
@@ -130,8 +132,8 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       setLoading(false);
       triggerSuccessHaptic();
       Alert.alert(
-        'Trip Completed (Offline)',
-        'Network error. Trip will be synced when connection is restored',
+        t('weight', 'offlineErrorTitle'),
+        t('weight', 'offlineErrorMessage'),
         [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
       );
     }
@@ -150,27 +152,27 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         {/* Header */}
         <View className="mb-6">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>Complete Trip</Text>
+            <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>{t('weight', 'headerTitle')}</Text>
             <View className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10">
               <Text className="text-white" onPress={() => navigation.goBack()}>✕</Text>
             </View>
           </View>
           <Text className={`${highContrast ? 'text-white' : 'text-white/70'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium`}>
-            Enter the weight (tonnage) for this trip
+            {t('weight', 'headerSubtitle')}
           </Text>
         </View>
 
         <View className={`rounded-xl p-4 mb-6 border ${highContrast ? 'border-yellow-400 bg-yellow-300' : 'border-[#0F67FE]/30 bg-[#0F67FE]/10'}`}>
-          <Text className={`${highContrast ? 'text-black' : 'text-white/80'} ${largeText ? 'text-base' : 'text-sm'} mb-1 font-poppins-medium`}>Trip Token</Text>
+          <Text className={`${highContrast ? 'text-black' : 'text-white/80'} ${largeText ? 'text-base' : 'text-sm'} mb-1 font-poppins-medium`}>{t('weight', 'tripTokenLabel')}</Text>
           <Text className={`${highContrast ? 'text-black' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} font-poppins-bold`}>{trip.tripToken}</Text>
         </View>
 
         <View className="mb-6">
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Weight (Kilograms)</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>{t('weight', 'weightLabel')}</Text>
           <TextInput
             value={weight}
             onChangeText={setWeight}
-            placeholder="Enter weight in kg (e.g., 13200)"
+            placeholder={t('weight', 'weightPlaceholder')}
             placeholderTextColor="#666"
             keyboardType="numeric"
             className={`px-4 py-4 rounded-xl ${largeText ? 'text-xl' : 'text-lg'} ${highContrast ? 'text-black bg-white border-white' : 'text-white bg-white/5 border border-white/10'}`}
@@ -178,7 +180,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
             autoFocus
           />
           <Text className={`${highContrast ? 'text-white' : 'text-white/60'} ${largeText ? 'text-sm' : 'text-xs'} mt-2`}>
-            Example: 13200 kg = 13.2 tons
+            {t('weight', 'weightExample')}
           </Text>
         </View>
 
@@ -186,21 +188,21 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
           {weight && !isNaN(parseFloat(weight)) && parseFloat(weight) > 0 && (
             <View className={`rounded-xl p-4 mb-4 border ${highContrast ? 'border-yellow-400 bg-yellow-300' : 'border-[#0F67FE]/30 bg-[#0F67FE]/10'}`}>
               <Text className={`${highContrast ? 'text-black' : 'text-[#0F67FE]'} text-center ${largeText ? 'text-xl' : 'text-lg'} font-poppins-bold`}>
-                {(parseFloat(weight) / 1000).toFixed(2)} tons
+                {t('weight', 'summaryTons', (parseFloat(weight) / 1000).toFixed(2))}
               </Text>
             </View>
           )}
         </View>
 
         <ButtonPrimary
-          title="Complete Trip"
+          title={t('weight', 'completeButton')}
           onPress={handleSubmit}
           loading={loading}
           disabled={loading || !weight}
         />
 
           <ButtonPrimary
-            title="Cancel"
+          title={t('weight', 'cancelButton')}
             onPress={() => navigation.goBack()}
             variant="secondary"
             size="medium"

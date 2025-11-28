@@ -7,11 +7,13 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_700Bold } from
 import { Text as RNText, View, Text, TextInput as RNTextInput } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useAccessibilityStore } from './src/store/useAccessibilityStore';
+import { useI18n } from './src/i18n';
 import './global.css';
 
 export default function App() {
   const { checkAuth } = useAuthStore();
   const { setUser, syncOfflineTrips, isSyncingOffline, syncingCount } = useTripStore();
+  const { t } = useI18n();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -91,7 +93,7 @@ export default function App() {
             }}
           >
             <Text style={{ color: 'white', textAlign: 'center' }}>
-              Syncing {syncingCount} offline trip{syncingCount === 1 ? '' : 's'}...
+              {t('app', 'syncingBanner', syncingCount)}
             </Text>
           </View>
         </View>

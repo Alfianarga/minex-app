@@ -7,6 +7,8 @@ import { useTripStore } from '../store/useTripStore';
 import { USER_ROLES } from '../utils/constants';
 import { checkApiConnection } from '../utils/apiCheck';
 import { useAccessibilityStore } from '../store/useAccessibilityStore';
+import { useI18n } from '../i18n';
+import { useLanguageStore } from '../store/useLanguageStore';
 
 export const LoginScreen: React.FC = () => {
   const [email, setEmail] = React.useState('');
@@ -18,6 +20,8 @@ export const LoginScreen: React.FC = () => {
   const { login, checkAuth, isAuthenticated, isLoading } = useAuthStore();
   const { setUser } = useTripStore();
   const { highContrast, largeText } = useAccessibilityStore();
+  const { language, t } = useI18n();
+  const setLanguage = useLanguageStore((s) => s.setLanguage);
 
   React.useEffect(() => {
     checkAuth();
@@ -107,36 +111,75 @@ export const LoginScreen: React.FC = () => {
               resizeMode="cover"
             />
           </View>
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-4xl' : 'text-3xl'} font-poppins-bold mb-1`}>MINEX Mobile</Text>
-          <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-lg' : 'text-base'} font-poppins-medium`}>Sign in to continue</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-4xl' : 'text-3xl'} font-poppins-bold mb-1`}>{t('login', 'title')}</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-lg' : 'text-base'} font-poppins-medium`}>{t('login', 'subtitle')}</Text>
+
+          {/* Language toggle */}
+          <View className="mt-5 flex-row items-center justify-center gap-2">
+            <TouchableOpacity
+              onPress={() => setLanguage('en')}
+              activeOpacity={0.9}
+              className={`px-4 py-2 rounded-full border ${
+                language === 'en' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+              }`}
+            >
+              <Text
+                className={`font-poppins-medium ${
+                  language === 'en'
+                    ? 'text-[#0F67FE] text-sm'
+                    : 'text-white/80 text-xs'
+                }`}
+              >
+                EN · English
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setLanguage('id')}
+              activeOpacity={0.9}
+              className={`px-4 py-2 rounded-full border ${
+                language === 'id' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+              }`}
+            >
+              <Text
+                className={`font-poppins-medium ${
+                  language === 'id'
+                    ? 'text-[#0F67FE] text-sm'
+                    : 'text-white/80 text-xs'
+                }`}
+              >
+                ID · Bahasa
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* API Connection Status */}
           <View className="mt-4 flex-row items-center">
             {checkingApi ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-[#0F67FE] rounded-full mr-2" />
-                <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>Checking API connection...</Text>
+                <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>{t('login', 'apiChecking')}</Text>
               </View>
             ) : apiConnected === true ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-[#0F67FE] rounded-full mr-2" />
-                <Text className={`text-[#0F67FE] ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>API Connected</Text>
+                <Text className={`text-[#0F67FE] ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>{t('login', 'apiConnected')}</Text>
               </View>
             ) : apiConnected === false ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-red-500 rounded-full mr-2" />
-                <Text className={`text-red-500 ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>API Not Connected</Text>
+                <Text className={`text-red-500 ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>{t('login', 'apiNotConnected')}</Text>
               </View>
             ) : null}
           </View>
         </View>
 
         <View className="mb-6">
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Email</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>{t('login', 'emailLabel')}</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="Enter your email"
+            placeholder={t('login', 'emailPlaceholder')}
             placeholderTextColor="#94A3B8"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -147,12 +190,12 @@ export const LoginScreen: React.FC = () => {
         </View>
 
         <View className="mb-8">
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Password</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>{t('login', 'passwordLabel')}</Text>
           <View className="relative">
             <TextInput
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder={t('login', 'passwordPlaceholder')}
               placeholderTextColor="#94A3B8"
               secureTextEntry={!showPassword}
               autoCapitalize="none"
@@ -172,12 +215,12 @@ export const LoginScreen: React.FC = () => {
 
         <View className="-mt-6 mb-8">
           <TouchableOpacity onPress={() => {}} activeOpacity={0.8} className="self-end">
-            <Text className="text-[#0F67FE] font-poppins-medium">Forgot password?</Text>
+            <Text className="text-[#0F67FE] font-poppins-medium">{t('login', 'forgotPassword')}</Text>
           </TouchableOpacity>
         </View>
 
         <ButtonPrimary
-          title="Login"
+          title={t('login', 'loginButton')}
           onPress={handleLogin}
           loading={loading}
           disabled={loading || apiConnected === false}
@@ -185,7 +228,7 @@ export const LoginScreen: React.FC = () => {
 
         <View className="mt-8 px-4">
           <Text className={`${highContrast ? 'text-white' : 'text-white/60'} text-center ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium`}>
-            Select your role: Operator (Tambang) or Checker (Pabrik)
+            {t('login', 'roleHint')}
           </Text>
         </View>
         </ScrollView>

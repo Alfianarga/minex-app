@@ -10,6 +10,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccessibilityStore } from '../store/useAccessibilityStore';
 import { triggerSuccessHaptic, triggerWarningHaptic } from '../utils/haptics';
+import { useI18n } from '../i18n';
 
 interface QRScannerScreenProps {
   navigation: any;
@@ -21,6 +22,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
   const [processing, setProcessing] = useState(false);
   const insets = useSafeAreaInsets();
   const { highContrast, largeText } = useAccessibilityStore();
+  const { t } = useI18n();
 
   const isOperator = user?.role === USER_ROLES.OPERATOR;
   const isChecker = user?.role === USER_ROLES.CHECKER;
@@ -61,21 +63,21 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
       const qrData = parseQRData(data);
       if (!qrData) {
         triggerWarningHaptic();
-        Alert.alert('Invalid QR Code', 'QR data unreadable');
+        Alert.alert(t('qr', 'invalidTitle'), t('qr', 'invalidMessage'));
         setProcessing(false);
         return;
       }
       
       if ((user?.role?.toUpperCase() === 'OPERATOR') && !qrData.vehicleId) {
         triggerWarningHaptic();
-        Alert.alert('Invalid QR Code', 'QR code missing vehicle information');
+        Alert.alert(t('qr', 'invalidTitle'), t('qr', 'invalidVehicle'));
         setProcessing(false);
         return;
       }
       
       if ((user?.role?.toUpperCase() === 'CHECKER') && !qrData.tripToken) {
         triggerWarningHaptic();
-        Alert.alert('Invalid QR Code', 'QR code missing trip token');
+        Alert.alert(t('qr', 'invalidTitle'), t('qr', 'invalidTripToken'));
         setProcessing(false);
         return;
       }      
@@ -89,7 +91,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         // Checker: Complete existing trip
         await handleCompleteTrip(tripToken);
       } else {
-        Alert.alert('Unauthorized', 'Your role does not have permission to scan QR codes');
+        Alert.alert(t('qr', 'unauthorizedTitle'), t('qr', 'unauthorizedMessage'));
       }
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to process QR code');
@@ -121,8 +123,8 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
       if (existingTrip && existingTrip.status?.toUpperCase() === "PENDING") {
         triggerWarningHaptic();
         Alert.alert(
-          'Trip Already Pending',
-          `Trip ${qrData.tripToken} is already in progress. Complete it before starting a new one.`
+          t('qr', 'tripAlreadyPendingTitle'),
+          t('qr', 'tripAlreadyPendingMessage', qrData.tripToken)
         );
         setProcessing(false);
         return;
@@ -144,8 +146,8 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         addTrip(offlineTrip as any);
         triggerSuccessHaptic();
         Alert.alert(
-          'Trip Saved Offline',
-          'Trip will be synced when connection is restored',
+          t('qr', 'offlineStartTitle'),
+          t('qr', 'offlineStartMessage'),
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
         setProcessing(false);
@@ -158,15 +160,15 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
 
       triggerSuccessHaptic();
       Alert.alert(
-        'Trip Started',
-        `Trip ${qrData.tripToken} has been created successfully`,
+        t('qr', 'tripStartedTitle'),
+        t('qr', 'tripStartedMessage', qrData.tripToken),
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (error: any) {
       // 4️⃣ Handle duplicate trip or network error
       if (error?.response?.status === 409) {
         triggerWarningHaptic();
-        Alert.alert('Trip Already Pending', error.response.data.error);
+        Alert.alert(t('qr', 'tripAlreadyPendingTitle'), error.response.data.error);
       } else {
         // Save offline if API fails
         const offlineTrip = {
@@ -179,8 +181,8 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         addTrip(offlineTrip as any);
         triggerSuccessHaptic();
         Alert.alert(
-          'Trip Saved Offline',
-          'Network error. Trip will be synced when connection is restored',
+          t('qr', 'offlineStartTitle'),
+          t('qr', 'offlineErrorMessage'),
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       }
@@ -213,7 +215,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
 
     if (existingTrip && (existingTrip.status?.toUpperCase() === 'COMPLETED' || (existingTrip as any).completionPending)) {
       triggerWarningHaptic();
-      Alert.alert('Already Completed', 'This trip has already been completed or is being completed. Please wait.', [{ text: 'OK' }]);
+      Alert.alert(t('qr', 'completeAlreadyTitle'), t('qr', 'completeAlreadyMessage'), [{ text: 'OK' }]);
       return;
     }
 
@@ -230,7 +232,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     return (
       <View className={`flex-1 items-center justify-center ${highContrast ? 'bg-black' : 'bg-minex-dark'}`}>
         <ActivityIndicator size="large" color="#0F67FE" />
-        <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} mt-4 font-poppins-medium`}>Processing...</Text>
+        <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} mt-4 font-poppins-medium`}>{t('qr', 'processing')}</Text>
       </View>
     );
   }
@@ -243,14 +245,14 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         style={{ top: insets.top + 12 }}
       >
         <View className="flex-row justify-between items-center mb-4">
-          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>Scan QR Code</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>{t('qr', 'startHeader')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10" activeOpacity={0.8}>
             <Text className="text-white">✕</Text>
           </TouchableOpacity>
         </View>
         <View className={`rounded-xl p-4 border ${highContrast ? 'border-yellow-400 bg-yellow-300' : 'border-[#0F67FE]/30 bg-[#0F67FE]/10'}`}>
           <Text className={`${highContrast ? 'text-black' : 'text-white'} text-center ${largeText ? 'text-lg' : 'text-base'} font-poppins-medium`}>
-            {user?.role?.toUpperCase() === 'OPERATOR' ? 'Scan QR to Start Trip' : 'Scan QR to Complete Trip'}
+            {user?.role?.toUpperCase() === 'OPERATOR' ? t('qr', 'helperOperator') : t('qr', 'helperChecker')}
           </Text>
         </View>
       </View>
