@@ -6,6 +6,8 @@ import { useTripStore } from '../store/useTripStore';
 import { tripAPI, CompleteTripRequest } from '../api/tripAPI';
 import { offlineStorage } from '../utils/storage';
 import NetInfo from '@react-native-community/netinfo';
+import { useAccessibilityStore } from '../store/useAccessibilityStore';
+import { triggerSuccessHaptic, triggerWarningHaptic } from '../utils/haptics';
 
 interface WeightInputScreenProps {
   navigation: any;
@@ -23,11 +25,12 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
   const trip = useTripStore((s) => s.trips.find((t) => t.tripToken === token));
   const [weight, setWeight] = useState('');
   const [loading, setLoading] = useState(false);
+  const { highContrast, largeText } = useAccessibilityStore();
 
   if (!trip) {
     return (
-      <View className="flex-1 items-center justify-center bg-minex-dark px-6">
-        <Text className="text-white text-lg text-center mb-4 font-poppins-medium">
+      <View className={`flex-1 items-center justify-center px-6 ${highContrast ? 'bg-black' : 'bg-minex-dark'}`}>
+        <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} text-center mb-4 font-poppins-medium`}>
           Trip not found
         </Text>
         <ButtonPrimary
@@ -43,6 +46,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
     const weightKg = parseFloat(weight);
 
     if (!weight || isNaN(weightKg) || weightKg <= 0) {
+      triggerWarningHaptic();
       Alert.alert('Invalid Weight', 'Please enter a valid weight in kilograms');
       return;
     }
@@ -75,6 +79,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       await offlineStorage.saveTrip(updatedTrip);
       updateTrip(tripToken, updatedTrip as any);
       setLoading(false);
+      triggerSuccessHaptic();
       Alert.alert(
         'Trip Completed (Offline)',
         'Trip will be synced when connection is restored',
@@ -89,6 +94,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       const completedTrip = await tripAPI.completeTrip(completeData);
       updateTrip(tripToken, { ...completedTrip, completionPending: false } as any);
       setLoading(false);
+      triggerSuccessHaptic();
       Alert.alert(
         'Trip Completed',
         `Trip ${tripToken} completed successfully with ${(weightKg / 1000).toFixed(2)} tons`,
@@ -101,6 +107,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         // Already completed or not eligible; clear pending flag
         updateTrip(tripToken, { completionPending: false } as any);
         setLoading(false);
+        triggerWarningHaptic();
         Alert.alert(
           'Already Completed',
           'This trip has already been completed on the server.',
@@ -121,6 +128,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
       await offlineStorage.saveTrip(updatedTrip);
       updateTrip(tripToken, updatedTrip as any);
       setLoading(false);
+      triggerSuccessHaptic();
       Alert.alert(
         'Trip Completed (Offline)',
         'Network error. Trip will be synced when connection is restored',
@@ -130,7 +138,7 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
+    <SafeAreaView className={`flex-1 ${highContrast ? 'bg-black' : 'bg-minex-dark'}`} edges={['top','left','right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -142,42 +150,42 @@ export const WeightInputScreen: React.FC<WeightInputScreenProps> = ({ navigation
         {/* Header */}
         <View className="mb-6">
           <View className="flex-row items-center justify-between mb-2">
-            <Text className="text-white text-2xl font-poppins-bold">Complete Trip</Text>
+            <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>Complete Trip</Text>
             <View className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10">
               <Text className="text-white" onPress={() => navigation.goBack()}>✕</Text>
             </View>
           </View>
-          <Text className="text-white/70 text-sm font-poppins-medium">
+          <Text className={`${highContrast ? 'text-white' : 'text-white/70'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium`}>
             Enter the weight (tonnage) for this trip
           </Text>
         </View>
 
-        <View className="rounded-xl p-4 mb-6 border border-[#0F67FE]/30 bg-[#0F67FE]/10">
-          <Text className="text-white/80 text-sm mb-1 font-poppins-medium">Trip Token</Text>
-          <Text className="text-white text-lg font-poppins-bold">{trip.tripToken}</Text>
+        <View className={`rounded-xl p-4 mb-6 border ${highContrast ? 'border-yellow-400 bg-yellow-300' : 'border-[#0F67FE]/30 bg-[#0F67FE]/10'}`}>
+          <Text className={`${highContrast ? 'text-black' : 'text-white/80'} ${largeText ? 'text-base' : 'text-sm'} mb-1 font-poppins-medium`}>Trip Token</Text>
+          <Text className={`${highContrast ? 'text-black' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} font-poppins-bold`}>{trip.tripToken}</Text>
         </View>
 
         <View className="mb-6">
-          <Text className="text-white text-sm font-poppins-medium mb-2">Weight (Kilograms)</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Weight (Kilograms)</Text>
           <TextInput
             value={weight}
             onChangeText={setWeight}
             placeholder="Enter weight in kg (e.g., 13200)"
             placeholderTextColor="#666"
             keyboardType="numeric"
-            className="text-white px-4 py-4 rounded-xl text-lg bg-white/5 border border-white/10"
+            className={`px-4 py-4 rounded-xl ${largeText ? 'text-xl' : 'text-lg'} ${highContrast ? 'text-black bg-white border-white' : 'text-white bg-white/5 border border-white/10'}`}
             style={{ minHeight: 56 }}
             autoFocus
           />
-          <Text className="text-white/60 text-xs mt-2">
+          <Text className={`${highContrast ? 'text-white' : 'text-white/60'} ${largeText ? 'text-sm' : 'text-xs'} mt-2`}>
             Example: 13200 kg = 13.2 tons
           </Text>
         </View>
 
         <View className="mb-4">
           {weight && !isNaN(parseFloat(weight)) && parseFloat(weight) > 0 && (
-            <View className="rounded-xl p-4 mb-4 border border-[#0F67FE]/30 bg-[#0F67FE]/10">
-              <Text className="text-[#0F67FE] text-center text-lg font-poppins-bold">
+            <View className={`rounded-xl p-4 mb-4 border ${highContrast ? 'border-yellow-400 bg-yellow-300' : 'border-[#0F67FE]/30 bg-[#0F67FE]/10'}`}>
+              <Text className={`${highContrast ? 'text-black' : 'text-[#0F67FE]'} text-center ${largeText ? 'text-xl' : 'text-lg'} font-poppins-bold`}>
                 {(parseFloat(weight) / 1000).toFixed(2)} tons
               </Text>
             </View>

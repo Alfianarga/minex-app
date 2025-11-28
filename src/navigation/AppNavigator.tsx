@@ -8,6 +8,7 @@ import { WeightInputScreen } from '../screens/WeightInputScreen';
 import { TripListScreen } from '../screens/TripListScreen';
 import { useAuthStore } from '../store/useAuthStore';
 import { useTripStore } from '../store/useTripStore';
+import { useAccessibilityStore } from '../store/useAccessibilityStore';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -22,6 +23,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const AppNavigator: React.FC = () => {
   const { isAuthenticated, checkAuth, user } = useAuthStore();
   const { setUser } = useTripStore();
+  const highContrast = useAccessibilityStore((s) => s.highContrast);
 
   useEffect(() => {
     checkAuth().then(() => {
@@ -37,7 +39,7 @@ export const AppNavigator: React.FC = () => {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#0a0a0a' },
+          contentStyle: { backgroundColor: highContrast ? '#000000' : '#0a0a0a' },
         }}
       >
         {!isAuthenticated ? (

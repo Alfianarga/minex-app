@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator, View } from 'react-native';
+import { triggerTapHaptic } from '../utils/haptics';
 
 interface ButtonPrimaryProps {
   title: string;
@@ -43,7 +44,7 @@ export const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => { triggerTapHaptic(); onPress(); }}
       disabled={disabled || loading}
       className={`
         ${getBgColor()}
@@ -62,6 +63,7 @@ export const ButtonPrimary: React.FC<ButtonPrimaryProps> = ({
         shadowOffset: { width: 0, height: variant === 'primary' ? 6 : 0 },
         elevation: variant === 'primary' ? 4 : 0,
       }}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       {loading ? (
         <ActivityIndicator color="white" size="small" />

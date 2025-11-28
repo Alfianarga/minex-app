@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { View, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ButtonPrimary } from '../components/ButtonPrimary';
@@ -6,18 +6,20 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useTripStore } from '../store/useTripStore';
 import { USER_ROLES } from '../utils/constants';
 import { checkApiConnection } from '../utils/apiCheck';
+import { useAccessibilityStore } from '../store/useAccessibilityStore';
 
 export const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
-  const [checkingApi, setCheckingApi] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [apiConnected, setApiConnected] = React.useState<boolean | null>(null);
+  const [checkingApi, setCheckingApi] = React.useState(true);
+  const [showPassword, setShowPassword] = React.useState(false);
   const { login, checkAuth, isAuthenticated, isLoading } = useAuthStore();
   const { setUser } = useTripStore();
+  const { highContrast, largeText } = useAccessibilityStore();
 
-  useEffect(() => {
+  React.useEffect(() => {
     checkAuth();
     checkApiStatus();
   }, []);
@@ -37,7 +39,7 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated) {
       const { user } = useAuthStore.getState();
       if (user) {
@@ -81,14 +83,14 @@ export const LoginScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-minex-dark">
-        <Text className="text-white text-lg font-poppins-medium">Loading...</Text>
+      <View className={`flex-1 items-center justify-center ${highContrast ? 'bg-black' : 'bg-minex-dark'}`}>
+        <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-xl' : 'text-lg'} font-poppins-medium`}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
+    <SafeAreaView className={`flex-1 ${highContrast ? 'bg-black' : 'bg-minex-dark'}`} edges={['top','left','right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -105,32 +107,32 @@ export const LoginScreen: React.FC = () => {
               resizeMode="cover"
             />
           </View>
-          <Text className="text-white text-3xl font-poppins-bold mb-1">MINEX Mobile</Text>
-          <Text className="text-white/80 text-base font-poppins-medium">Sign in to continue</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-4xl' : 'text-3xl'} font-poppins-bold mb-1`}>MINEX Mobile</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-lg' : 'text-base'} font-poppins-medium`}>Sign in to continue</Text>
 
           {/* API Connection Status */}
           <View className="mt-4 flex-row items-center">
             {checkingApi ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-[#0F67FE] rounded-full mr-2" />
-                <Text className="text-white/80 text-xs font-poppins-medium">Checking API connection...</Text>
+                <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>Checking API connection...</Text>
               </View>
             ) : apiConnected === true ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-[#0F67FE] rounded-full mr-2" />
-                <Text className="text-[#0F67FE] text-xs font-poppins-medium">API Connected</Text>
+                <Text className={`text-[#0F67FE] ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>API Connected</Text>
               </View>
             ) : apiConnected === false ? (
               <View className="flex-row items-center">
                 <View className="w-2 h-2 bg-red-500 rounded-full mr-2" />
-                <Text className="text-red-500 text-xs font-poppins-medium">API Not Connected</Text>
+                <Text className={`text-red-500 ${largeText ? 'text-sm' : 'text-xs'} font-poppins-medium`}>API Not Connected</Text>
               </View>
             ) : null}
           </View>
         </View>
 
         <View className="mb-6">
-          <Text className="text-white text-sm font-poppins-medium mb-2">Email</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Email</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
@@ -139,13 +141,13 @@ export const LoginScreen: React.FC = () => {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            className="text-white px-4 py-4 rounded-xl text-lg bg-white/5 border border-white/20"
+            className={`${highContrast ? 'text-black bg-white border-white' : 'text-white bg-white/5 border border-white/20'} px-4 py-4 rounded-xl ${largeText ? 'text-xl' : 'text-lg'}`}
             style={{ minHeight: 56 }}
           />
         </View>
 
         <View className="mb-8">
-          <Text className="text-white text-sm font-poppins-medium mb-2">Password</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium mb-2`}>Password</Text>
           <View className="relative">
             <TextInput
               value={password}
@@ -154,7 +156,7 @@ export const LoginScreen: React.FC = () => {
               placeholderTextColor="#94A3B8"
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              className="text-white px-4 py-4 pr-14 rounded-xl text-lg bg-white/5 border border-white/20"
+              className={`${highContrast ? 'text-black bg-white border-white' : 'text-white bg-white/5 border border-white/20'} px-4 py-4 pr-14 rounded-xl ${largeText ? 'text-xl' : 'text-lg'}`}
               style={{ minHeight: 56 }}
               onSubmitEditing={handleLogin}
             />
@@ -182,7 +184,7 @@ export const LoginScreen: React.FC = () => {
         />
 
         <View className="mt-8 px-4">
-          <Text className="text-white/60 text-center text-sm font-poppins-medium">
+          <Text className={`${highContrast ? 'text-white' : 'text-white/60'} text-center ${largeText ? 'text-base' : 'text-sm'} font-poppins-medium`}>
             Select your role: Operator (Tambang) or Checker (Pabrik)
           </Text>
         </View>
@@ -191,4 +193,3 @@ export const LoginScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-

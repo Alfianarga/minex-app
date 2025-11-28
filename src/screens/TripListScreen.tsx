@@ -7,6 +7,7 @@ import { tripAPI } from '../api/tripAPI';
 import { offlineStorage } from '../utils/storage';
 import { TRIP_STATUS } from '../utils/constants';
 import NetInfo from '@react-native-community/netinfo';
+import { useAccessibilityStore } from '../store/useAccessibilityStore';
 
 interface TripListScreenProps {
   navigation: any;
@@ -16,6 +17,7 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
   const { trips, setTrips, offlineTrips } = useTripStore();
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const { highContrast, largeText } = useAccessibilityStore();
 
   useEffect(() => {
     loadTrips();
@@ -85,11 +87,11 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-minex-dark" edges={['top','left','right']}>
+    <SafeAreaView className={`flex-1 ${highContrast ? 'bg-black' : 'bg-minex-dark'}`} edges={['top','left','right']}>
       {/* Header */}
       <View className="px-6 pt-4 pb-4">
         <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-white text-2xl font-poppins-bold">Trip List</Text>
+          <Text className={`${highContrast ? 'text-white' : 'text-white'} ${largeText ? 'text-3xl' : 'text-2xl'} font-poppins-bold`}>Trip List</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} className="w-10 h-10 rounded-full items-center justify-center bg-white/10 border border-white/10" activeOpacity={0.8}>
             <Text className="text-white">✕</Text>
           </TouchableOpacity>
@@ -100,12 +102,14 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
           <TouchableOpacity
             onPress={() => setFilter('all')}
             className={`px-4 py-2 rounded-xl mr-2 border ${
-              filter === 'all' ? 'bg-[#0F67FE] border-[#0F67FE]' : 'bg-white/5 border-white/10'
+              filter === 'all'
+                ? (highContrast ? 'bg-white border-white' : 'bg-[#0F67FE] border-[#0F67FE]')
+                : (highContrast ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10')
             }`}
           >
             <Text
-              className={`text-sm font-poppins-medium ${
-                filter === 'all' ? 'text-white' : 'text-white/70'
+              className={`${largeText ? 'text-base' : 'text-sm'} font-poppins-medium ${
+                filter === 'all' ? (highContrast ? 'text-black' : 'text-white') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
               All ({todayTrips.length})
@@ -114,12 +118,14 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
           <TouchableOpacity
             onPress={() => setFilter('pending')}
             className={`px-4 py-2 rounded-xl mr-2 border ${
-              filter === 'pending' ? 'bg-amber-500/20 border-amber-400' : 'bg-white/5 border-white/10'
+              filter === 'pending'
+                ? (highContrast ? 'bg-yellow-300 border-yellow-400' : 'bg-amber-500/20 border-amber-400')
+                : (highContrast ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10')
             }`}
           >
             <Text
-              className={`text-sm font-poppins-medium ${
-                filter === 'pending' ? 'text-amber-300' : 'text-white/70'
+              className={`${largeText ? 'text-base' : 'text-sm'} font-poppins-medium ${
+                filter === 'pending' ? (highContrast ? 'text-black' : 'text-amber-300') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
               Pending ({todayTrips.filter((t) => t.status?.toUpperCase() === 'PENDING').length})
@@ -128,12 +134,14 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
           <TouchableOpacity
             onPress={() => setFilter('completed')}
             className={`px-4 py-2 rounded-xl border ${
-              filter === 'completed' ? 'bg-emerald-500/20 border-emerald-400' : 'bg-white/5 border-white/10'
+              filter === 'completed'
+                ? (highContrast ? 'bg-green-300 border-green-400' : 'bg-emerald-500/20 border-emerald-400')
+                : (highContrast ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10')
             }`}
           >
             <Text
-              className={`text-sm font-poppins-medium ${
-                filter === 'completed' ? 'text-emerald-300' : 'text-white/70'
+              className={`${largeText ? 'text-base' : 'text-sm'} font-poppins-medium ${
+                filter === 'completed' ? (highContrast ? 'text-black' : 'text-emerald-300') : (highContrast ? 'text-white' : 'text-white/70')
               }`}
             >
               Completed ({todayTrips.filter((t) => t.status?.toUpperCase() === 'COMPLETED').length})
@@ -154,10 +162,10 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
         contentContainerClassName="pb-6"
         ListEmptyComponent={
           <View className="items-center justify-center py-12 px-6">
-            <Text className="text-white/80 text-lg text-center font-poppins-medium">
+            <Text className={`${highContrast ? 'text-white' : 'text-white/80'} ${largeText ? 'text-xl' : 'text-lg'} text-center font-poppins-medium`}>
               No trips found
             </Text>
-            <Text className="text-white/60 text-sm text-center mt-2">
+            <Text className={`${highContrast ? 'text-white' : 'text-white/60'} ${largeText ? 'text-base' : 'text-sm'} text-center mt-2`}>
               {filter === 'all'
                 ? 'Start scanning QR codes to create trips'
                 : `No ${filter} trips available`}
@@ -175,5 +183,6 @@ export const TripListScreen: React.FC<TripListScreenProps> = ({ navigation }) =>
       />
     </SafeAreaView>
   );
-};
+}
+;
 
