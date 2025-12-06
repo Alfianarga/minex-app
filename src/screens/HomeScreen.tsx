@@ -50,13 +50,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 onPress={() => setLanguage('en')}
                 activeOpacity={0.9}
                 className={`px-3 py-1.5 rounded-full border ${
-                  language === 'en' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+                  highContrast
+                    ? language === 'en'
+                      ? 'bg-white border-white'
+                      : 'bg-black border-white'
+                    : language === 'en'
+                    ? 'bg-[#0F67FE] border-[#0F67FE]'
+                    : 'bg-transparent border-white/40'
                 }`}
               >
                 <Text
                   className={`font-poppins-medium ${
-                    language === 'en'
-                      ? 'text-[#0F67FE] text-xs'
+                    highContrast
+                      ? language === 'en'
+                        ? 'text-black text-xs'
+                        : 'text-white text-[11px]'
+                      : language === 'en'
+                      ? 'text-white text-xs'
                       : 'text-white/80 text-[11px]'
                   }`}
                 >
@@ -68,13 +78,23 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 onPress={() => setLanguage('id')}
                 activeOpacity={0.9}
                 className={`px-3 py-1.5 rounded-full border ${
-                  language === 'id' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+                  highContrast
+                    ? language === 'id'
+                      ? 'bg-white border-white'
+                      : 'bg-black border-white'
+                    : language === 'id'
+                    ? 'bg-[#0F67FE] border-[#0F67FE]'
+                    : 'bg-transparent border-white/40'
                 }`}
               >
                 <Text
                   className={`font-poppins-medium ${
-                    language === 'id'
-                      ? 'text-[#0F67FE] text-xs'
+                    highContrast
+                      ? language === 'id'
+                        ? 'text-black text-xs'
+                        : 'text-white text-[11px]'
+                      : language === 'id'
+                      ? 'text-white text-xs'
                       : 'text-white/80 text-[11px]'
                   }`}
                 >

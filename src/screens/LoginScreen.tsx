@@ -120,13 +120,23 @@ export const LoginScreen: React.FC = () => {
               onPress={() => setLanguage('en')}
               activeOpacity={0.9}
               className={`px-4 py-2 rounded-full border ${
-                language === 'en' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+                highContrast
+                  ? language === 'en'
+                    ? 'bg-white border-white'
+                    : 'bg-black border-white'
+                  : language === 'en'
+                  ? 'bg-[#0F67FE] border-[#0F67FE]'
+                  : 'bg-transparent border-white/40'
               }`}
             >
               <Text
                 className={`font-poppins-medium ${
-                  language === 'en'
-                    ? 'text-[#0F67FE] text-sm'
+                  highContrast
+                    ? language === 'en'
+                      ? 'text-black text-sm'
+                      : 'text-white text-xs'
+                    : language === 'en'
+                    ? 'text-white text-sm'
                     : 'text-white/80 text-xs'
                 }`}
               >
@@ -138,13 +148,23 @@ export const LoginScreen: React.FC = () => {
               onPress={() => setLanguage('id')}
               activeOpacity={0.9}
               className={`px-4 py-2 rounded-full border ${
-                language === 'id' ? 'bg-white border-white' : 'bg-white/10 border-white/30'
+                highContrast
+                  ? language === 'id'
+                    ? 'bg-white border-white'
+                    : 'bg-black border-white'
+                  : language === 'id'
+                  ? 'bg-[#0F67FE] border-[#0F67FE]'
+                  : 'bg-transparent border-white/40'
               }`}
             >
               <Text
                 className={`font-poppins-medium ${
-                  language === 'id'
-                    ? 'text-[#0F67FE] text-sm'
+                  highContrast
+                    ? language === 'id'
+                      ? 'text-black text-sm'
+                      : 'text-white text-xs'
+                    : language === 'id'
+                    ? 'text-white text-sm'
                     : 'text-white/80 text-xs'
                 }`}
               >
