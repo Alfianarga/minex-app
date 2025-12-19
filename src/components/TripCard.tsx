@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Trip } from '../api/tripAPI';
 import { formatDate, getDuration } from '../utils/formatDate';
 import { TRIP_STATUS } from '../utils/constants';
+import { useI18n } from '../i18n';
 
 interface TripCardProps {
   trip: Trip;
@@ -10,13 +11,17 @@ interface TripCardProps {
 }
 
 export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
+  const { t } = useI18n();
   const status = (trip.status ?? '').trim().toUpperCase();
-  const isCompleted = status === 'COMPLETED';
-  const isPending = status === 'PENDING';
+  const isCompleted = status === 'COMPLETED_PLANT';
+  const isOpen = status === 'OPEN';
+  const isClosedField = status === 'CLOSED_FIELD' || status === 'CLOSE_FIELD';
   const badgeContainer = isCompleted
     ? 'bg-emerald-400/15 border border-emerald-400'
-    : 'bg-amber-400/15 border border-amber-400';
-  const badgeText = isCompleted ? 'text-emerald-300' : 'text-amber-300';
+    : isOpen
+    ? 'bg-amber-400/15 border border-amber-400'
+    : 'bg-slate-400/15 border border-slate-400';
+  const badgeText = isCompleted ? 'text-emerald-300' : isOpen ? 'text-amber-300' : 'text-slate-300';
 
   return (
     <TouchableOpacity
@@ -26,19 +31,27 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
     >
       <View className="flex-row justify-between items-start mb-2">
         <View className="flex-1">
-          <Text className="text-white text-lg font-poppins-bold mb-1">{trip.tripToken}</Text>
-          <Text className="text-white/70 text-sm">Destination: {trip.destination}</Text>
+          <Text className="text-white text-lg font-poppins-bold mb-1">
+            {trip.tripToken?.split('-')[1] ?? trip.tripToken}
+          </Text>
+          <Text className="text-white/70 text-sm">{t('trips', 'destinationLabel')}: {trip.destination}</Text>
         </View>
         <View className={`${badgeContainer} px-3 py-1 rounded-full`}>
           <Text className={`${badgeText} text-xs font-poppins-medium`}>
-            {trip.status}
+            {isOpen
+              ? t('trips', 'statusOpen')
+              : isClosedField
+              ? t('trips', 'statusClosedField')
+              : isCompleted
+              ? t('trips', 'statusCompleted')
+              : trip.status}
           </Text>
         </View>
       </View>
 
       <View className="mt-3">
         <View className="flex-row justify-between mb-2">
-          <Text className="text-white/70 text-sm">Departure:</Text>
+          <Text className="text-white/70 text-sm">{t('trips', 'departureLabel')}</Text>
           <Text className="text-white text-sm font-poppins-medium">
             {formatDate(trip.departureAt)}
           </Text>
@@ -47,20 +60,20 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onPress }) => {
         {isCompleted && trip.arrivalAt && (
           <>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-white/70 text-sm">Arrival:</Text>
+              <Text className="text-white/70 text-sm">{t('trips', 'arrivalLabel')}</Text>
               <Text className="text-white text-sm font-poppins-medium">
                 {formatDate(trip.arrivalAt)}
               </Text>
             </View>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-white/70 text-sm">Duration:</Text>
+              <Text className="text-white/70 text-sm">{t('trips', 'durationLabel')}</Text>
               <Text className="text-white text-sm font-poppins-medium">
                 {getDuration(trip.departureAt, trip.arrivalAt)}
               </Text>
             </View>
             {trip.weightKg && (
               <View className="flex-row justify-between">
-                <Text className="text-white/70 text-sm">Weight:</Text>
+                <Text className="text-white/70 text-sm">{t('trips', 'weightLabel')}</Text>
                 <Text className="text-[#0F67FE] text-sm font-poppins-bold">
                   {(trip.weightKg / 1000).toFixed(2)} tons
                 </Text>

@@ -26,8 +26,8 @@ const translations = {
       scanQR: 'Scan QR',
       viewTrips: 'View Trips',
       yourRole: 'Your Role',
-      operatorDesc: 'As an Operator, you scan QR codes at the source (Tambang) to start new trips.',
-      checkerDesc: 'As a Checker, you scan QR codes at the destination (Pabrik) to complete trips and enter weight.',
+      operatorDesc: 'As an Operator, you scan QR codes at the mine (Tambang) to start trips and record that trucks have departed and returned.',
+      checkerDesc: 'As a Checker, you use the app to help validate trips. Plant tickets and Excel from the factory are still used later in the office to fill weight and lock data.',
       adminDesc: 'Admin access for monitoring and reporting.',
       accessibilityTitle: 'Accessibility & Display',
       largeText: 'Large Text',
@@ -36,7 +36,7 @@ const translations = {
       languageLabel: 'Language',
       en: 'English',
       id: 'Bahasa Indonesia',
-      pendingTrips: (n: number) => `${n} Pending Trip${n > 1 ? 's' : ''}`,
+      pendingTrips: (n: number) => `${n} active trip${n > 1 ? 's' : ''} in progress`,
     },
     qr: {
       processing: 'Processing...',
@@ -47,11 +47,11 @@ const translations = {
       unauthorizedTitle: 'Unauthorized',
       unauthorizedMessage: 'Your role does not have permission to scan QR codes',
       startHeader: 'Scan QR Code',
-      helperOperator: 'Scan QR to Start Trip',
-      helperChecker: 'Scan QR to Complete Trip',
-      tripAlreadyPendingTitle: 'Trip Already Pending',
+      helperOperator: 'Scan QR at the mine to start or continue trips.',
+      helperChecker: 'Use this scanner to help validate trips. Plant tickets and Excel are handled later in the office.',
+      tripAlreadyPendingTitle: 'Trip Already Active',
       tripAlreadyPendingMessage: (token: string) =>
-        `Trip ${token} is already in progress. Complete it before starting a new one.`,
+        `Trip ${token} is already active. Finish this trip in the app before starting another for the same truck.`,
       offlineStartTitle: 'Trip Saved Offline',
       offlineStartMessage: 'Trip will be synced when connection is restored',
       tripStartedTitle: 'Trip Started',
@@ -60,7 +60,7 @@ const translations = {
       offlineErrorMessage: 'Network error. Trip will be synced when connection is restored',
       completeAlreadyTitle: 'Already Completed',
       completeAlreadyMessage:
-        'This trip has already been completed or is being completed. Please wait.',
+        'This trip has already been completed or is being completed. Plant tickets and Excel will be used in the office to lock the final data.',
     },
     weight: {
       notFoundTitle: 'Trip not found',
@@ -89,12 +89,32 @@ const translations = {
     trips: {
       headerTitle: 'Trip List',
       filterAll: 'All',
-      filterPending: 'Pending',
-      filterCompleted: 'Completed',
+      filterActive: 'Active (mine)',
+      filterCompleted: 'Completed (mine)',
       emptyTitle: 'No trips found',
       emptyAllDescription: 'Start scanning QR codes to create trips',
       emptyFilteredDescription: (filter: string) => `No ${filter} trips available`,
       todayLabel: "Today's trips",
+      destinationLabel: 'Destination',
+      departureLabel: 'Departure',
+      arrivalLabel: 'Arrival',
+      durationLabel: 'Duration',
+      weightLabel: 'Weight',
+      closeFieldButton: 'Mark finished at mine',
+      closeFieldProcessing: 'Marking as finished...',
+      closeFieldConfirmTitle: 'Finish trip at mine?',
+      closeFieldConfirmMessage: (token: string) =>
+        `Confirm that the truck for trip ${token} has returned to the mine.`,
+      closeFieldSuccessTitle: 'Trip closed in field',
+      closeFieldSuccessMessage:
+        'Trip has been marked as finished at the mine. Plant tickets and Excel will still complete and lock the data later.',
+      closeFieldAlreadyTitle: 'Already finished',
+      closeFieldAlreadyMessage:
+        'This trip is already finished or cannot be marked finished again. Try refreshing the trip list.',
+statusActive: 'Active (mine)',
+      statusCompleted: 'Completed (mine)',
+      statusOpen: 'Active (mine)',
+      statusClosedField: 'Finished at mine',
     },
     app: {
       syncingBanner: (count: number) =>
@@ -127,9 +147,9 @@ const translations = {
       viewTrips: 'Lihat Perjalanan',
       yourRole: 'Peran Anda',
       operatorDesc:
-        'Sebagai Operator, Anda melakukan scan QR di sumber (Tambang) untuk memulai perjalanan baru.',
+        'Sebagai Operator, Anda melakukan scan QR di Tambang untuk memulai perjalanan dan mencatat bahwa truk sudah berangkat dan kembali.',
       checkerDesc:
-        'Sebagai Checker, Anda melakukan scan QR di tujuan (Pabrik) untuk menyelesaikan perjalanan dan mengisi berat.',
+        'Sebagai Checker, Anda menggunakan aplikasi untuk membantu validasi perjalanan. Tiket pabrik dan file Excel dari pabrik tetap digunakan di kantor untuk mengisi berat dan mengunci data.',
       adminDesc: 'Akses Admin untuk pemantauan dan pelaporan.',
       accessibilityTitle: 'Aksesibilitas & Tampilan',
       largeText: 'Teks Besar',
@@ -138,7 +158,7 @@ const translations = {
       languageLabel: 'Bahasa',
       en: 'Inggris',
       id: 'Bahasa Indonesia',
-      pendingTrips: (n: number) => `${n} perjalanan tertunda`,
+      pendingTrips: (n: number) => `${n} perjalanan aktif yang masih berjalan`,
     },
     qr: {
       processing: 'Memproses...',
@@ -149,11 +169,11 @@ const translations = {
       unauthorizedTitle: 'Tidak Diizinkan',
       unauthorizedMessage: 'Peran Anda tidak memiliki izin untuk scan QR code',
       startHeader: 'Scan QR Code',
-      helperOperator: 'Scan QR untuk Memulai Perjalanan',
-      helperChecker: 'Scan QR untuk Menyelesaikan Perjalanan',
-      tripAlreadyPendingTitle: 'Perjalanan Masih Berjalan',
+      helperOperator: 'Scan QR di Tambang untuk memulai atau melanjutkan perjalanan.',
+      helperChecker: 'Gunakan scanner ini untuk membantu validasi perjalanan. Tiket pabrik dan Excel tetap diolah kemudian di kantor.',
+      tripAlreadyPendingTitle: 'Perjalanan Masih Aktif',
       tripAlreadyPendingMessage: (token: string) =>
-        `Perjalanan ${token} masih berjalan. Selesaikan dulu sebelum memulai yang baru.`,
+        `Perjalanan ${token} masih aktif. Selesaikan dulu perjalanan ini di aplikasi sebelum membuat perjalanan baru untuk truk yang sama.`,
       offlineStartTitle: 'Perjalanan Disimpan Offline',
       offlineStartMessage: 'Perjalanan akan disinkronkan saat koneksi kembali tersedia',
       tripStartedTitle: 'Perjalanan Dimulai',
@@ -162,7 +182,7 @@ const translations = {
       offlineErrorMessage: 'Gangguan jaringan. Perjalanan akan disinkronkan saat koneksi kembali.',
       completeAlreadyTitle: 'Sudah Selesai',
       completeAlreadyMessage:
-        'Perjalanan ini sudah diselesaikan atau sedang dalam proses penyelesaian. Harap tunggu.',
+        'Perjalanan ini sudah diselesaikan atau sedang dalam proses penyelesaian. Tiket pabrik dan file Excel akan digunakan di kantor untuk mengunci data akhir.',
     },
     weight: {
       notFoundTitle: 'Perjalanan tidak ditemukan',
@@ -191,12 +211,32 @@ const translations = {
     trips: {
       headerTitle: 'Daftar Perjalanan',
       filterAll: 'Semua',
-      filterPending: 'Tertunda',
-      filterCompleted: 'Selesai',
+      filterActive: 'Aktif (tambang)',
+      filterCompleted: 'Selesai (tambang)',
       emptyTitle: 'Tidak ada perjalanan',
       emptyAllDescription: 'Mulai scan QR code untuk membuat perjalanan',
       emptyFilteredDescription: (filter: string) => `Tidak ada perjalanan ${filter.toLowerCase()} untuk hari ini`,
       todayLabel: 'Perjalanan hari ini',
+      destinationLabel: 'Tujuan',
+      departureLabel: 'Berangkat',
+      arrivalLabel: 'Tiba',
+      durationLabel: 'Durasi',
+      weightLabel: 'Berat',
+      closeFieldButton: 'Tandai selesai di tambang',
+      closeFieldProcessing: 'Menandai selesai di tambang...',
+      closeFieldConfirmTitle: 'Selesaikan perjalanan di tambang?',
+      closeFieldConfirmMessage: (token: string) =>
+        `Konfirmasi bahwa truk untuk perjalanan ${token} sudah kembali ke tambang.`,
+      closeFieldSuccessTitle: 'Perjalanan ditutup di lapangan',
+      closeFieldSuccessMessage:
+        'Perjalanan sudah ditandai selesai di tambang. Tiket pabrik dan file Excel tetap akan melengkapi dan mengunci data di kantor.',
+      closeFieldAlreadyTitle: 'Sudah selesai',
+      closeFieldAlreadyMessage:
+        'Perjalanan ini sudah selesai atau tidak bisa ditandai selesai lagi. Silakan segarkan daftar perjalanan.',
+      statusActive: 'Aktif (tambang)',
+      statusCompleted: 'Selesai (tambang)',
+      statusOpen: 'Aktif (tambang)',
+      statusClosedField: 'Selesai di tambang',
     },
     app: {
       syncingBanner: (count: number) =>

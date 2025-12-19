@@ -3,7 +3,6 @@ import client from './client';
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export interface StartTripRequest {
-  tripToken: string;
   vehicleId: number;
   destination: string;
   material: string;
@@ -14,6 +13,8 @@ export interface CompleteTripRequest {
   weightKg: number;
 }
 
+export type TripStatus = 'OPEN' | 'CLOSED_FIELD' | 'COMPLETED_PLANT' | 'ADJUSTED';
+
 export interface Trip {
   id?: number;
   tripToken: string;
@@ -23,20 +24,25 @@ export interface Trip {
   departureAt: string;
   arrivalAt?: string;
   weightKg?: number;
-  status: 'Pending' | 'Completed';
+  status: TripStatus;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export const tripAPI = {
   async startTrip(data: StartTripRequest): Promise<Trip> {
-    const response = await client.post<Trip>('/trip/start', data);
-    return response.data;
+    const response = await client.post<{ status: string; trip: Trip }>('/trip/start', data);
+    return response.data.trip;
   },
 
   async completeTrip(data: CompleteTripRequest): Promise<Trip> {
-    const response = await client.post<Trip>('/trip/complete', data);
-    return response.data;
+    const response = await client.post<{ status: string; trip: Trip }>('/trip/complete', data);
+    return response.data.trip;
+  },
+
+  async closeTripInField(tripToken: string): Promise<Trip> {
+    const response = await client.post<{ status: string; trip: Trip }>('/trip/close-field', { tripToken });
+    return response.data.trip;
   },
 
   async getTrips(): Promise<Trip[]> {

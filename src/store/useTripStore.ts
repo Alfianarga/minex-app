@@ -46,19 +46,19 @@ export const useTripStore = create<TripState>((set, get) => ({
   trips: [],
   pendingTrips: [],
   setTrips: (trips) => {
-    const pendingTrips = trips.filter((t) => t.status === 'Pending');
+    const pendingTrips = trips.filter((t) => t.status === 'OPEN');
     set({ trips, pendingTrips });
   },
   addTrip: (trip) => {
     const trips = [...get().trips, trip];
-    const pendingTrips = trips.filter((t) => t.status === 'Pending');
+    const pendingTrips = trips.filter((t) => t.status === 'OPEN');
     set({ trips, pendingTrips });
   },
   updateTrip: (tripToken, updates) => {
     const trips = get().trips.map((t) =>
       t.tripToken === tripToken.trim() ? { ...t, ...updates } : t
     );
-    const pendingTrips = trips.filter((t) => t.status === 'Pending');
+    const pendingTrips = trips.filter((t) => t.status === 'OPEN');
     set({ trips, pendingTrips });
   },
   getTripByToken: (tripToken) => {

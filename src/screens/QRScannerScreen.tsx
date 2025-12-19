@@ -82,14 +82,12 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         return;
       }      
 
-      const { tripToken } = qrData;
-
       if (user?.role?.toUpperCase() === 'OPERATOR') {
         // Operator: Start new trip
         await handleStartTrip(qrData);
       } else if (user?.role?.toUpperCase() === 'CHECKER') {
         // Checker: Complete existing trip
-        await handleCompleteTrip(tripToken);
+        await handleCompleteTrip(qrData.tripToken);
       } else {
         Alert.alert(t('qr', 'unauthorizedTitle'), t('qr', 'unauthorizedMessage'));
       }
@@ -100,92 +98,100 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     }
   };
 
-  // const handleStartTrip = async (qrData: any) => {
-  //   const startData: StartTripRequest = {
-  //     tripToken: qrData.tripToken,
-  //     vehicleId: qrData.vehicleId || 1, // Default values if not in QR
-  //     driverName: qrData.driverName || 'Unknown',
-  //     destinationId: qrData.destinationId || 1,
-  //     materialId: qrData.materialId || 1,
-  //   };
   const handleStartTrip = async (qrData: any) => {
-  
     const startData: StartTripRequest = {
-      tripToken: qrData.tripToken,           // ✅ from QR
-      vehicleId: qrData.vehicleId,           // ✅ from QR
-      destination: qrData.destination,       // ✅ required by backend
-      material: qrData.material,             // ✅ required by backend
+      vehicleId: qrData.vehicleId,
+      destination: qrData.destination,
+      material: qrData.material,
     };
 
-    try {
-      // 1️⃣ Check local offline trips first
-      const existingTrip = getTripByToken(qrData.tripToken);
-      if (existingTrip && existingTrip.status?.toUpperCase() === "PENDING") {
+    const maybeToken = qrData.tripToken as string | undefined;
+
+    // If this QR refers to an existing trip token and we already have an OPEN trip locally,
+    // shortcut to TripList and show the popup instead of trying to start again.
+    if (maybeToken) {
+      const existingTrip = getTripByToken(maybeToken);
+      if (existingTrip && existingTrip.status?.toUpperCase() === 'OPEN') {
         triggerWarningHaptic();
         Alert.alert(
           t('qr', 'tripAlreadyPendingTitle'),
-          t('qr', 'tripAlreadyPendingMessage', qrData.tripToken)
+          t('qr', 'tripAlreadyPendingMessage', maybeToken),
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.goBack();
+                setTimeout(() => {
+                  navigation.navigate('TripList', { focusTripToken: maybeToken });
+                }, 100);
+              },
+            },
+          ]
         );
-        setProcessing(false);
         return;
       }
-  
-      // 2️⃣ Check network connection
-      const netInfo = await NetInfo.fetch();
-      const isOnline = netInfo.isConnected;
-  
-      if (!isOnline) {
-        // Save offline if no connection
-        const offlineTrip = {
-          ...startData,
-          departureAt: new Date().toISOString(),
-          status: "PENDING",
-          offline: true,
-        };
-        await offlineStorage.saveTrip(offlineTrip);
-        addTrip(offlineTrip as any);
-        triggerSuccessHaptic();
-        Alert.alert(
-          t('qr', 'offlineStartTitle'),
-          t('qr', 'offlineStartMessage'),
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
-        setProcessing(false);
-        return;
-      }
-  
-      // 3️⃣ Start trip via API
+    }
+
+    try {
       const trip = await tripAPI.startTrip(startData);
       addTrip(trip);
 
       triggerSuccessHaptic();
       Alert.alert(
         t('qr', 'tripStartedTitle'),
-        t('qr', 'tripStartedMessage', qrData.tripToken),
+        t('qr', 'tripStartedMessage', trip.tripToken),
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (error: any) {
-      // 4️⃣ Handle duplicate trip or network error
-      if (error?.response?.status === 409) {
+      const status = error?.response?.status as number | undefined;
+      const conflictToken =
+        (error?.response?.data?.tripToken as string | undefined) || maybeToken;
+
+      if (status === 409) {
         triggerWarningHaptic();
-        Alert.alert(t('qr', 'tripAlreadyPendingTitle'), error.response.data.error);
-      } else {
-        // Save offline if API fails
-        const offlineTrip = {
-          ...startData,
-          departureAt: new Date().toISOString(),
-          status: "PENDING",
-          offline: true,
-        };
-        await offlineStorage.saveTrip(offlineTrip);
-        addTrip(offlineTrip as any);
-        triggerSuccessHaptic();
         Alert.alert(
-          t('qr', 'offlineStartTitle'),
-          t('qr', 'offlineErrorMessage'),
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          t('qr', 'tripAlreadyPendingTitle'),
+          (error?.response?.data?.error as string) ||
+            t('qr', 'tripAlreadyPendingMessage', conflictToken || ''),
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.goBack();
+                setTimeout(() => {
+                  if (conflictToken) {
+                    navigation.navigate('TripList', { focusTripToken: conflictToken });
+                  } else {
+                    navigation.navigate('TripList');
+                  }
+                }, 100);
+              },
+            },
+          ]
         );
+        return;
       }
+
+      if (status) {
+        triggerWarningHaptic();
+        Alert.alert('Error', error?.response?.data?.error || 'Failed to start trip');
+        return;
+      }
+
+      const offlineTrip = {
+        ...startData,
+        departureAt: new Date().toISOString(),
+        status: 'OPEN',
+        offline: true,
+      };
+      await offlineStorage.saveTrip(offlineTrip);
+      addTrip(offlineTrip as any);
+      triggerSuccessHaptic();
+      Alert.alert(
+        t('qr', 'offlineStartTitle'),
+        t('qr', 'offlineErrorMessage'),
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
     } finally {
       setProcessing(false);
     }
@@ -212,8 +218,8 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
     if (!existingTrip) {
       existingTrip = getTripByToken(token) as any;
     }
-
-    if (existingTrip && (existingTrip.status?.toUpperCase() === 'COMPLETED' || (existingTrip as any).completionPending)) {
+    const status = existingTrip?.status?.toUpperCase();
+    if (existingTrip && (status === 'COMPLETED_PLANT' || (existingTrip as any).completionPending)) {
       triggerWarningHaptic();
       Alert.alert(t('qr', 'completeAlreadyTitle'), t('qr', 'completeAlreadyMessage'), [{ text: 'OK' }]);
       return;

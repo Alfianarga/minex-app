@@ -15,7 +15,7 @@ export type RootStackParamList = {
   Home: undefined;
   QRScanner: undefined;
   WeightInput: { tripToken: string };
-  TripList: undefined;
+  TripList: { focusTripToken?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
