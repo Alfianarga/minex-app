@@ -1,11 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { QRScannerView } from '../components/QRScannerView';
 import { useAuthStore } from '../store/useAuthStore';
 import { useTripStore } from '../store/useTripStore';
 import { tripAPI, StartTripRequest } from '../api/tripAPI';
-import { USER_ROLES, TRIP_STATUS } from '../utils/constants';
+import { USER_ROLES, TRIP_STATUS, STORAGE_KEYS } from '../utils/constants';
 import { offlineStorage } from '../utils/storage';
+import { storage } from '../utils/storage';
 import NetInfo from '@react-native-community/netinfo';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccessibilityStore } from '../store/useAccessibilityStore';
@@ -26,6 +27,26 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
 
   const isOperator = user?.role === USER_ROLES.OPERATOR;
   const isChecker = user?.role === USER_ROLES.CHECKER;
+
+  useEffect(() => {
+    const ensureToken = async () => {
+      const token = await storage.getItem<string>(STORAGE_KEYS.AUTH_TOKEN);
+      if (!token) {
+        Alert.alert(
+          'Session expired',
+          'Your session has expired. Please log in again to continue scanning.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }),
+            },
+          ]
+        );
+      }
+    };
+
+    ensureToken();
+  }, [navigation, t]);
 
   // const parseQRData = (data: string): { tripToken: string; vehicleId?: number; driverName?: string; destinationId?: number; materialId?: number } | null => {
   //   try {

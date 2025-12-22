@@ -44,10 +44,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { success: false, error: result.message || 'Login failed' };
       }
   
-      const { token, user } = result;
-  
-      // Save user info and token
+      const { token, refreshToken, user } = result;
+
+      // Save user info and tokens
       await storage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      if (refreshToken) {
+        await storage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+      }
       await storage.setItem(STORAGE_KEYS.USER_DATA, user);
   
       set({ user, isAuthenticated: true });
@@ -60,6 +63,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await supabase.auth.signOut();
     await storage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+    await storage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     await storage.removeItem(STORAGE_KEYS.USER_DATA);
     set({ user: null, isAuthenticated: false });
   },

@@ -2,6 +2,7 @@ export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost
 
 export const STORAGE_KEYS = {
   AUTH_TOKEN: '@minex/auth_token',
+  REFRESH_TOKEN: '@minex/refresh_token',
   USER_DATA: '@minex/user_data',
   PENDING_TRIPS: '@minex/pending_trips',
   OFFLINE_TRIPS: '@minex/offline_trips',
