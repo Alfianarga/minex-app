@@ -19,7 +19,7 @@ interface QRScannerScreenProps {
 
 export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) => {
   const { user } = useAuthStore();
-  const { addTrip, getTripByToken, updateTrip } = useTripStore();
+  const { addTrip, getTripByToken, updateTrip, syncOfflineTrips } = useTripStore();
   const [processing, setProcessing] = useState(false);
   const insets = useSafeAreaInsets();
   const { highContrast, largeText } = useAccessibilityStore();
@@ -47,6 +47,21 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
 
     ensureToken();
   }, [navigation, t]);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const online = state.isConnected && state.isInternetReachable !== false;
+      console.log('[NET] isConnected:', state.isConnected, 'isInternetReachable:', state.isInternetReachable);
+      if (online) {
+        console.log('[NET] Online detected -> trigger syncOfflineTrips');
+        syncOfflineTrips();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [syncOfflineTrips]);
 
   // const parseQRData = (data: string): { tripToken: string; vehicleId?: number; driverName?: string; destinationId?: number; materialId?: number } | null => {
   //   try {
@@ -204,6 +219,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ navigation }) 
         departureAt: new Date().toISOString(),
         status: 'OPEN',
         offline: true,
+        action: 'START',
       };
       await offlineStorage.saveTrip(offlineTrip);
       addTrip(offlineTrip as any);

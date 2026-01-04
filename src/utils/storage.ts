@@ -40,8 +40,15 @@ export const storage = {
 export const offlineStorage = {
   async saveTrip(trip: any): Promise<void> {
     try {
-      const trips = await storage.getItem<any[]>(STORAGE_KEYS.OFFLINE_TRIPS) || [];
+      const trips = (await storage.getItem<any[]>(STORAGE_KEYS.OFFLINE_TRIPS)) || [];
       trips.push(trip);
+      console.log('[OFFLINE] saveTrip -> total queued:', trips.length, 'newTrip:', {
+        vehicleId: trip.vehicleId,
+        destination: trip.destination,
+        material: trip.material,
+        departureAt: trip.departureAt,
+        action: trip.action,
+      });
       await storage.setItem(STORAGE_KEYS.OFFLINE_TRIPS, trips);
     } catch (error) {
       console.error('Error saving offline trip:', error);

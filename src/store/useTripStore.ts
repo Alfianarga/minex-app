@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Trip, CompleteTripRequest } from '../api/tripAPI';
+import { Trip, CompleteTripRequest, StartTripRequest } from '../api/tripAPI';
 import { UserRole } from '../utils/constants';
 import { offlineStorage } from '../utils/storage';
 import { tripAPI } from '../api/tripAPI';
@@ -79,34 +79,77 @@ export const useTripStore = create<TripState>((set, get) => ({
     set({ isSyncingOffline: true });
     try {
       const queued = await offlineStorage.getOfflineTrips();
-      const toSync = queued.filter((t) => (t as any).completionPending);
+      console.log('[SYNC] queued offline trips:', queued.length);
+      const toSync = queued.filter(
+        (t) => (t as any).completionPending || (t as any).action === 'START'
+      );
+      console.log('[SYNC] toSync (START + completionPending):', toSync.length);
       set({ syncingCount: toSync.length });
 
       const remaining: any[] = [];
       for (const t of queued) {
-        if (!(t as any).completionPending) {
-          remaining.push(t);
-          continue;
-        }
-        const payload: CompleteTripRequest = {
-          tripToken: t.tripToken,
-          weightKg: t.weightKg || 0,
-        };
-        try {
-          const completed = await tripAPI.completeTrip(payload);
-          const updated = { ...completed } as any;
-          updated.completionPending = false;
-          updated.offline = false;
-          get().updateTrip(t.tripToken, updated);
-        } catch (err: any) {
-          const status = err?.response?.status as number | undefined;
-          if (status === 409) {
-            get().updateTrip(t.tripToken, { completionPending: false } as any);
-          } else {
+        // Sync offline START trips (from operator scans)
+        if ((t as any).action === 'START') {
+          console.log('[SYNC] START trip -> try startTrip:', {
+            vehicleId: t.vehicleId,
+            destination: t.destination,
+            material: t.material,
+          });
+          const startData: StartTripRequest = {
+            vehicleId: t.vehicleId,
+            destination: t.destination,
+            material: t.material,
+          };
+          try {
+            const created = await tripAPI.startTrip(startData);
+            console.log('[SYNC] START trip success, tripToken:', created.tripToken);
+            get().addTrip(created);
+            // Do not keep in remaining -> successfully synced
+            continue;
+          } catch (err: any) {
+            const status = err?.response?.status as number | undefined;
+            console.log('[SYNC] START trip error, status:', status);
+            if (status === 409) {
+              // Server already has a pending trip for this, treat as synced to avoid duplicates
+              // Optionally we could refresh from server here if needed
+              continue;
+            }
+            // Network or other errors: keep in queue to retry later
             remaining.push(t);
+            continue;
           }
         }
+
+        // Existing logic: sync completionPending trips
+        if ((t as any).completionPending) {
+          console.log('[SYNC] COMPLETE trip -> try completeTrip:', t.tripToken);
+          const payload: CompleteTripRequest = {
+            tripToken: t.tripToken,
+            weightKg: t.weightKg || 0,
+          };
+          try {
+            const completed = await tripAPI.completeTrip(payload);
+            const updated = { ...completed } as any;
+            updated.completionPending = false;
+            updated.offline = false;
+            get().updateTrip(t.tripToken, updated);
+          } catch (err: any) {
+            const status = err?.response?.status as number | undefined;
+            console.log('[SYNC] COMPLETE trip error, status:', status);
+            if (status === 409) {
+              get().updateTrip(t.tripToken, { completionPending: false } as any);
+            } else {
+              remaining.push(t);
+            }
+          }
+          continue;
+        }
+
+        // Anything else stays in the queue untouched
+        remaining.push(t);
       }
+
+      console.log('[SYNC] remaining offline trips after sync:', remaining.length);
       await offlineStorage.setOfflineTrips(remaining);
       set({ syncingCount: 0 });
     } finally {
