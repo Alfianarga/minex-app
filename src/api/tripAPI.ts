@@ -2,6 +2,26 @@ import client from './client';
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
+// Helper: get start/end of "today" in WIB (UTC+7), expressed as UTC timestamps
+function getTodayRangeWIB() {
+  const now = new Date();
+  // Geser ke WIB
+  const local = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  const y = local.getUTCFullYear();
+  const m = local.getUTCMonth(); // 0-based
+  const d = local.getUTCDate();
+
+  // 00:00 WIB hari ini = 17:00 UTC hari sebelumnya (UTC-7)
+  const startUTC = new Date(Date.UTC(y, m, d, -7, 0, 0));
+  // 00:00 WIB besok
+  const endUTC = new Date(Date.UTC(y, m, d + 1, -7, 0, 0));
+
+  return {
+    from: startUTC.toISOString(),
+    to: endUTC.toISOString(),
+  };
+}
+
 export interface StartTripRequest {
   vehicleId: number;
   destination: string;
@@ -46,11 +66,10 @@ export const tripAPI = {
   },
 
   async getTrips(): Promise<Trip[]> {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const response = await client.get<Trip[]>('/trip', { params: { date: `${y}-${m}-${d}` } });
+    const { from, to } = getTodayRangeWIB();
+    const response = await client.get<Trip[]>('/trip', {
+      params: { from, to },
+    });
     return response.data;
   },
 
